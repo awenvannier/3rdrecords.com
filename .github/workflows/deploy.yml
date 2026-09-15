@@ -24,9 +24,10 @@ jobs:
           python-version: "3.12"
       - run: pip install pillow cairosvg
       - run: python build.py
+        working-directory: 3rdrecords.com
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: 3rdrecords.com/dist
 
   deploy:
     needs: build
