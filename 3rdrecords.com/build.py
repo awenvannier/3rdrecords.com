@@ -21,8 +21,9 @@ ORIGINS = sorted({re.match(r"https://[^/]+", u).group(0) for u in [COVER] + [a["
 
 C = {"choco": "#512321", "orange": "#F6A10E", "ink": "#1D1D1B", "white": "#FEFEFE", "grey": "#9E9E9E"}
 
+CB = L.get("createdBy")
 TITLE = f"{L['name']} – Record label · {R['artist']}, {R['title']}"
-DESC = (f"{L['name']} is a record label and home of {' and '.join(a['name'] for a in ARTISTS)}. "
+DESC = (f"{L['name']} is a record label created by {CB['name']}, with {', '.join(a['name'] for a in ARTISTS)}. "
         f"Listen to the latest {R['type'].lower()}, “{R['title']}” by {R['artist']}, on Spotify, Apple Music, YouTube and Deezer.")
 
 
@@ -132,10 +133,10 @@ ul{list-style:none;margin:0;padding:0}
 .roster{display:grid;gap:1.5rem;margin-top:2.5rem}
 .artist{position:relative;display:block;background:var(--choco);text-decoration:none;overflow:hidden}
 .artist img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 58%;transition:transform .5s}.artist img.c{object-position:50% 50%}
-.artist div{position:absolute;inset:auto 0 0;padding:1.25rem 1.25rem 1.1rem;background:linear-gradient(to top,rgba(29,29,27,.92),rgba(29,29,27,0))}
+.artist div{position:absolute;z-index:1;inset:auto 0 0;padding:1.25rem 1.25rem 1.1rem;background:linear-gradient(to top,rgba(29,29,27,.92),rgba(29,29,27,0))}
 .artist h3{font-size:clamp(2.5rem,6vw,3.75rem)}
 .artist p{margin:.4rem 0 0;color:var(--orange)}
-.artist:hover img{transform:scale(1.03)}
+.artist:hover img,.artist:hover video{transform:scale(1.03)}.artist video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s}.tag{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.5rem}.lm{width:1.5rem;height:1.5rem;animation:spin 12s linear infinite}
 .about{display:grid;gap:1.5rem;align-items:center}
 .about p:not(.kick){margin:0;max-width:30em;font-size:clamp(1.125rem,2.1vw,1.5rem);line-height:1.5;color:#e9e6e1}
 .seal{width:min(14rem,40vw)}
@@ -155,12 +156,12 @@ ul{list-style:none;margin:0;padding:0}
 .nf .seal{margin:0 auto;width:7rem}
 .sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (min-width:40rem){.bar i{display:inline}.roster{grid-template-columns:repeat(auto-fill,minmax(18rem,24rem))}}
-@media (min-width:60rem){.hero-in{grid-template-columns:minmax(0,5fr) minmax(0,7fr);text-align:left;justify-items:start;align-items:center;column-gap:clamp(2rem,6vw,6rem)}.hero-in .stage{grid-row:1/5;width:min(100%,30rem);justify-self:center}.cta{justify-content:flex-start}.release{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end}.about,.foot{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.seal{justify-self:end}}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}.rec{transform:translateX(40%)}}
+@media (min-width:60rem){.hero-in{grid-template-columns:minmax(0,5fr) minmax(0,7fr);text-align:left;justify-items:start;align-items:center;column-gap:clamp(2rem,6vw,6rem)}.hero-in .stage{grid-row:1/5;width:min(100%,30rem);justify-self:center}.cta,.tag{justify-content:flex-start}.release{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end}.about,.foot{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.seal{justify-self:end}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}.rec{transform:translateX(40%)}.artist video{display:none}}
 """.strip()
 CSS = "".join(line.strip() for line in CSS.splitlines())
 CSS_HASH = base64.b64encode(hashlib.sha256(CSS.encode()).digest()).decode()
-CSP = (f"default-src 'none'; connect-src 'self'; img-src 'self' {' '.join(ORIGINS)}; font-src 'self'; "
+CSP = (f"default-src 'none'; connect-src 'self'; img-src 'self' {' '.join(ORIGINS)}; font-src 'self'; media-src 'self'; "
        f"style-src 'sha256-{CSS_HASH}'; base-uri 'none'; form-action 'none'")
 
 
@@ -174,7 +175,8 @@ def jsonld():
          "inLanguage": "en", "isPartOf": {"@id": f"{D}/#website"}, "about": {"@id": lid},
          "primaryImageOfPage": f"{D}/og.png", "dateModified": TODAY},
         {"@type": "Organization", "@id": lid, "name": L["name"], "url": f"{D}/", "description": L["description"],
-         "logo": f"{D}/logo.png", "image": f"{D}/og.png", "email": L["contact"], "sameAs": L["sameAs"]},
+         "logo": f"{D}/logo.png", "image": f"{D}/og.png", "email": L["contact"], "sameAs": L["sameAs"],
+         "founder": {"@id": CB["id"]} if CB else None},
     ]
     for a in ARTISTS:
         graph.append({"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"],
@@ -235,16 +237,20 @@ def index():
         f'<span class="act up">{"Watch" if "watch?v=" in l["url"] else "Listen"}'
         f'<span class="sr">{"" if "watch?v=" in l["url"] else " to"} {t} on {e(l["name"])}</span> ↗</span></a></li>'
         for l in R["links"])
-    roster = "".join(
-        f'<li><a class="artist" href="{e(a["url"])}">'
-        f'<img{CENTER if a.get("position") == "50% 50%" else ""} src="{e(a["image"])}" width="800" height="800" alt="{e(a["alt"])}" loading="lazy" decoding="async">'
-        f'<div><h3>{e(a["name"])}</h3><p class="up">{e(a["role"])} · {e(a.get("linkLabel", "Official website"))} ↗</p></div></a></li>'
-        for a in ARTISTS)
+    def card(a):
+        img = (f'<img{CENTER if a.get("position") == "50% 50%" else ""} src="{e(a["image"])}" width="800" height="800" '
+               f'alt="{e(a["alt"])}" loading="lazy" decoding="async">')
+        vid = (f'<video src="{e(a["video"])}" poster="{e(a["image"])}" autoplay muted loop playsinline '
+               'preload="metadata" aria-hidden="true"></video>') if a.get("video") else ""
+        return (f'<li><a class="artist" href="{e(a["url"])}">{img}{vid}'
+                f'<div><h3>{e(a["name"])}</h3><p class="up">{e(a["role"])} · '
+                f'{e(a.get("linkLabel", "Official website"))} ↗</p></div></a></li>')
+    roster = "".join(card(a) for a in ARTISTS)
     first = R["links"][0]
     apple = next((l for l in R["links"] if l["name"] == "Apple Music"), None)
     bar = f'<a href="{e(first["url"])}">{e(first["name"])}</a>' + (f'<a href="{e(apple["url"])}">Apple Music</a>' if apple else "")
     year = max(date.year, dt.date.today().year)
-    items = [f"<b>{t}</b> {e(R['artist'])}", "Out now", e(L["name"]), "Home of " + " &amp; ".join(e(a["name"]) for a in ARTISTS)]
+    items = [f"<b>{t}</b> {e(R['artist'])}", "Out now", e(L["name"]), f"Created by {e(CB['name'])}"]
     TICK = "".join(f"<span>{i}</span>" for i in items * 2)
     return (
         head(TITLE, DESC)
@@ -256,7 +262,7 @@ def index():
         + '<section class="hero" aria-labelledby="name"><div class="hero-in">'
         + f'<div class="stage rise" aria-hidden="true"><div class="disc">{circle(C["orange"], ref=True)}</div><div class="sheen"></div><div class="arm"></div></div>'
         + f'<h1 id="name" class="rise d2">{lockup("lockup", C["orange"], C["white"])}<span class="sr">{e(L["name"])}</span></h1>'
-        + '<p class="tag up rise d3">Record label · Home of ' + " &amp; ".join(e(a["name"]) for a in ARTISTS) + '</p>'
+        + f'<p class="tag up rise d3">Record label · Created by <img class="lm" src="{e(CB["logo"])}" width="24" height="24" alt=""> {e(CB["name"])}</p>'
         + f'<p class="cta rise d3"><span class="up or">New {e(R["type"].lower())} · {e(R["artist"])}</span><a class="btn up" href="#release">Listen to {t}</a></p>'
         + '</div>'
         + '<div class="ticker" aria-hidden="true"><div>' + TICK * 2 + '</div></div></section>'

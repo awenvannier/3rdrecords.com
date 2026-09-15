@@ -2,12 +2,17 @@
   "domain": "https://3rdrecords.com",
   "label": {
     "name": "3rd Records",
-    "description": "Record label. Home of Djouher and liid.",
-    "intro": "3rd Records is a record label, home of Djouher and liid. Our latest release is “I Killed Her”, the new single by Djouher.",
+    "description": "Record label created by Lead Major.",
+    "intro": "3rd Records is a record label created by Lead Major. Our latest release is “I Killed Her”, the new single by Djouher.",
     "contact": "contact@3rdrecords.com",
     "sameAs": [
       "https://musicbrainz.org/label/e4eba684-08be-4ec2-980d-0bf7a8a4446e"
-    ]
+    ],
+    "createdBy": {
+      "name": "Lead Major",
+      "id": "https://3rdrecords.com/#lead-major",
+      "logo": "/img/lead-major-logo.svg"
+    }
   },
   "artists": [
     {
@@ -29,6 +34,17 @@
       "image": "/img/liid-800.webp",
       "position": "50% 50%",
       "alt": "Illustration of a mallard duck in a straw hat, holding a flower in its beak, standing in a puddle between cattails."
+    },
+    {
+      "name": "Lead Major",
+      "url": "https://open.spotify.com/artist/0HePV5MBPoi502FIKslcBO",
+      "id": "https://3rdrecords.com/#lead-major",
+      "role": "French composer and electronic music producer",
+      "linkLabel": "Spotify",
+      "image": "/img/lead-major.webp",
+      "video": "/img/lead-major.mp4",
+      "position": "50% 50%",
+      "alt": "The Lead Major emblem glowing in blue, red and green light on a black background."
     }
   ],
   "release": {
