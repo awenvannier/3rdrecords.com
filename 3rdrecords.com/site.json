@@ -1,0 +1,77 @@
+{
+  "domain": "https://3rdrecords.com",
+  "label": {
+    "name": "3rd Records",
+    "description": "Record label. Home of Djouher and liid.",
+    "intro": "3rd Records is a record label, home of Djouher and liid. Our latest release is “I Killed Her”, the new single by Djouher.",
+    "contact": "contact@3rdrecords.com",
+    "sameAs": [
+      "https://musicbrainz.org/label/e4eba684-08be-4ec2-980d-0bf7a8a4446e"
+    ]
+  },
+  "artists": [
+    {
+      "name": "Djouher",
+      "url": "https://djouher.com/",
+      "id": "https://djouher.com/#artist",
+      "role": "North African indie-pop singer",
+      "image": "https://djouher.com/img/hero-800.webp",
+      "alt": "Djouher, dressed in white, kneels in a circle of blue light on a dark stage and looks up.",
+      "linkLabel": "Official website",
+      "position": "50% 58%"
+    },
+    {
+      "name": "liid.",
+      "url": "https://open.spotify.com/artist/1pajE7rKmzVHq2S6dLcgvG",
+      "id": "https://3rdrecords.com/#liid",
+      "role": "Lofi producer from Normandy, France",
+      "linkLabel": "Spotify",
+      "image": "/img/liid-800.webp",
+      "position": "50% 50%",
+      "alt": "Illustration of a mallard duck in a straw hat, holding a flower in its beak, standing in a puddle between cattails."
+    }
+  ],
+  "release": {
+    "title": "I Killed Her",
+    "artist": "Djouher",
+    "slug": "i-killed-her",
+    "type": "Single",
+    "date": "2026-03-27",
+    "duration": "PT2M56S",
+    "upc": "7316482048458",
+    "image": {
+      "base": "https://djouher.com/img/i-killed-her",
+      "alt": "Cover art for I Killed Her by Djouher: the singer, dressed in white, crouches beneath a glowing full moon on a deep blue stage."
+    },
+    "links": [
+      {
+        "name": "Spotify",
+        "url": "https://open.spotify.com/album/1ITFYNsW5lqz9MgU9kOY9h"
+      },
+      {
+        "name": "Apple Music",
+        "url": "https://music.apple.com/album/i-killed-her-single/1879817761"
+      },
+      {
+        "name": "YouTube",
+        "url": "https://www.youtube.com/watch?v=vQgVZkjjlTA"
+      },
+      {
+        "name": "Deezer",
+        "url": "https://www.deezer.com/album/926310991"
+      },
+      {
+        "name": "Amazon Music",
+        "url": "https://music.amazon.com/albums/B0GPY423BY"
+      },
+      {
+        "name": "YouTube Music",
+        "url": "https://music.youtube.com/playlist?list=OLAK5uy_lnwMPs8jboReWCHRCRNu1iUOoXkDR1s0E"
+      },
+      {
+        "name": "Tidal",
+        "url": "https://tidal.com/album/501900586"
+      }
+    ]
+  }
+}
