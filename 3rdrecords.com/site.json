@@ -6,6 +6,184 @@
     "intro": "3rd Records is an independent record label created by Lead Major. Our latest release is “Moving Out”, the new single by liid.",
     "contact": "contact@3rdrecords.com",
     "sameAs": [
+      "https://musicbrainz.org/label/e4eba684-08be-4ec2-980d-0bf7a8a4446e",
+      "https://www.wikidata.org/wiki/Q141470110"
+    ],
+    "createdBy": {
+      "name": "Lead Major",
+      "id": "https://3rdrecords.com/#lead-major",
+      "logo": "/img/lead-major-logo.svg"
+    }
+  },
+  "artists": [
+    {
+      "name": "Djouher",
+      "url": "https://djouher.com/",
+      "id": "https://djouher.com/#artist",
+      "role": "North African indie-pop singer",
+      "image": "https://djouher.com/img/hero-800.webp",
+      "alt": "Djouher, dressed in white, kneels in a circle of blue light on a dark stage and looks up.",
+      "linkLabel": "Official website",
+      "position": "50% 58%"
+    },
+    {
+      "name": "liid.",
+      "url": "https://open.spotify.com/artist/1pajE7rKmzVHq2S6dLcgvG",
+      "id": "https://3rdrecords.com/#liid",
+      "role": "Lofi producer from Normandy, France",
+      "linkLabel": "Spotify",
+      "image": "/img/liid-800.webp",
+      "position": "50% 50%",
+      "alt": "Illustration of a mallard duck in a straw hat, holding a flower in its beak, standing in a puddle between cattails."
+    },
+    {
+      "name": "Lead Major",
+      "url": "https://open.spotify.com/artist/0HePV5MBPoi502FIKslcBO",
+      "id": "https://3rdrecords.com/#lead-major",
+      "role": "French composer and electronic music producer",
+      "linkLabel": "Spotify",
+      "image": "/img/lead-major.webp",
+      "video": "/img/lead-major.mp4",
+      "position": "50% 50%",
+      "alt": "The Lead Major emblem glowing in blue, red and green light on a black background."
+    }
+  ],
+  "releases": [
+    {
+      "title": "Moving Out",
+      "artist": "liid.",
+      "slug": "moving-out",
+      "type": "Single",
+      "date": "2026-06-04",
+      "duration": "PT2M21S",
+      "upc": "7316482554799",
+      "image": {
+        "jpg": {
+          "640": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/2b/eb/53/2beb53f1-97db-cbfb-43a8-80e3fad44b28/49c4b30c-ad8a-4722-bd07-35b4a42dfc25.jpg/640x640bb.jpg",
+          "1200": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/2b/eb/53/2beb53f1-97db-cbfb-43a8-80e3fad44b28/49c4b30c-ad8a-4722-bd07-35b4a42dfc25.jpg/1200x1200bb.jpg"
+        },
+        "webp": {
+          "640": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/2b/eb/53/2beb53f1-97db-cbfb-43a8-80e3fad44b28/49c4b30c-ad8a-4722-bd07-35b4a42dfc25.jpg/640x640bb.webp",
+          "1200": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/2b/eb/53/2beb53f1-97db-cbfb-43a8-80e3fad44b28/49c4b30c-ad8a-4722-bd07-35b4a42dfc25.jpg/1200x1200bb.webp"
+        },
+        "alt": "Cover art for Moving Out by liid."
+      },
+      "links": [
+        {
+          "name": "Spotify",
+          "url": "https://open.spotify.com/album/5virGSX0jSQwO7SrPmj1Xs"
+        },
+        {
+          "name": "Apple Music",
+          "url": "https://music.apple.com/album/6771727699"
+        },
+        {
+          "name": "Deezer",
+          "url": "https://www.deezer.com/album/987986321"
+        },
+        {
+          "name": "Tidal",
+          "url": "https://tidal.com/album/526773825"
+        }
+      ]
+    },
+    {
+      "title": "I Killed Her",
+      "artist": "Djouher",
+      "slug": "i-killed-her",
+      "type": "Single",
+      "date": "2026-03-27",
+      "duration": "PT2M56S",
+      "upc": "7316482048458",
+      "image": {
+        "jpg": {
+          "640": "https://djouher.com/img/i-killed-her-640.jpg",
+          "1200": "https://djouher.com/img/i-killed-her-1200.jpg"
+        },
+        "webp": {
+          "640": "https://djouher.com/img/i-killed-her-640.webp",
+          "1200": "https://djouher.com/img/i-killed-her-1200.webp"
+        },
+        "alt": "Cover art for I Killed Her by Djouher: the singer, dressed in white, crouches beneath a glowing full moon on a deep blue stage."
+      },
+      "links": [
+        {
+          "name": "Spotify",
+          "url": "https://open.spotify.com/album/1ITFYNsW5lqz9MgU9kOY9h"
+        },
+        {
+          "name": "Apple Music",
+          "url": "https://music.apple.com/album/i-killed-her-single/1879817761"
+        },
+        {
+          "name": "YouTube",
+          "url": "https://www.youtube.com/watch?v=vQgVZkjjlTA"
+        },
+        {
+          "name": "Deezer",
+          "url": "https://www.deezer.com/album/926310991"
+        },
+        {
+          "name": "Amazon Music",
+          "url": "https://music.amazon.com/albums/B0GPY423BY"
+        },
+        {
+          "name": "YouTube Music",
+          "url": "https://music.youtube.com/playlist?list=OLAK5uy_lnwMPs8jboReWCHRCRNu1iUOoXkDR1s0E"
+        },
+        {
+          "name": "Tidal",
+          "url": "https://tidal.com/album/501900586"
+        }
+      ]
+    },
+    {
+      "title": "Mahogany",
+      "artist": "Swink, liid. & nytø",
+      "slug": "mahogany",
+      "type": "Single",
+      "date": "2026-01-08",
+      "duration": "PT2M10S",
+      "upc": "7316481576648",
+      "image": {
+        "jpg": {
+          "640": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/83/de/27/83de27d4-6229-bb0e-706b-12def161091c/a45b6a09-a45d-4bca-8588-6c5613fc6949.jpg/640x640bb.jpg",
+          "1200": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/83/de/27/83de27d4-6229-bb0e-706b-12def161091c/a45b6a09-a45d-4bca-8588-6c5613fc6949.jpg/1200x1200bb.jpg"
+        },
+        "webp": {
+          "640": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/83/de/27/83de27d4-6229-bb0e-706b-12def161091c/a45b6a09-a45d-4bca-8588-6c5613fc6949.jpg/640x640bb.webp",
+          "1200": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/83/de/27/83de27d4-6229-bb0e-706b-12def161091c/a45b6a09-a45d-4bca-8588-6c5613fc6949.jpg/1200x1200bb.webp"
+        },
+        "alt": "Cover art for Mahogany by Swink, liid. & nytø"
+      },
+      "links": [
+        {
+          "name": "Spotify",
+          "url": "https://open.spotify.com/album/6FeJWT2I6KH84Es8NIz9OF"
+        },
+        {
+          "name": "Apple Music",
+          "url": "https://music.apple.com/album/1854420205"
+        },
+        {
+          "name": "Deezer",
+          "url": "https://www.deezer.com/album/860408772"
+        },
+        {
+          "name": "Tidal",
+          "url": "https://tidal.com/album/475483510"
+        }
+      ]
+    }
+  ]
+}{
+  "domain": "https://3rdrecords.com",
+  "label": {
+    "name": "3rd Records",
+    "description": "Record label created by Lead Major.",
+    "intro": "3rd Records is an independent record label created by Lead Major. Our latest release is “Moving Out”, the new single by liid.",
+    "contact": "contact@3rdrecords.com",
+    "sameAs": [
       "https://musicbrainz.org/label/e4eba684-08be-4ec2-980d-0bf7a8a4446e"
     ],
     "createdBy": {
