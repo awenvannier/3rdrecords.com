@@ -14,7 +14,13 @@
       "name": "Lead Major",
       "id": "https://3rdrecords.com/#lead-major",
       "logo": "/img/lead-major-logo.svg"
-    }
+    },
+    "alternateName": [
+      "Third Records",
+      "3rd Records label",
+      "3rdrecords"
+    ],
+    "disambiguatingDescription": "Independent record label created by Lead Major, releasing liid., Djouher and Lead Major. Not related to Third Man Records."
   },
   "artists": [
     {
@@ -25,7 +31,11 @@
       "image": "https://djouher.com/img/hero-800.webp",
       "alt": "Djouher, dressed in white, kneels in a circle of blue light on a dark stage and looks up.",
       "linkLabel": "Official website",
-      "position": "50% 58%"
+      "position": "50% 58%",
+      "sameAs": [
+        "https://www.wikidata.org/wiki/Q141468247",
+        "https://www.discogs.com/artist/18275346-Djouher"
+      ]
     },
     {
       "name": "liid.",
@@ -35,7 +45,11 @@
       "linkLabel": "Spotify",
       "image": "/img/liid-800.webp",
       "position": "50% 50%",
-      "alt": "Illustration of a mallard duck in a straw hat, holding a flower in its beak, standing in a puddle between cattails."
+      "alt": "Illustration of a mallard duck in a straw hat, holding a flower in its beak, standing in a puddle between cattails.",
+      "sameAs": [
+        "https://musicbrainz.org/artist/3ea4e8a3-4b60-4fb3-a5ea-03ee4aca0e32",
+        "https://www.discogs.com/artist/11357834-Liid"
+      ]
     },
     {
       "name": "Lead Major",
@@ -86,6 +100,10 @@
           "name": "Tidal",
           "url": "https://tidal.com/album/526773825"
         }
+      ],
+      "sameAs": [
+        "https://musicbrainz.org/release/73ef0237-413a-4702-8766-af1a55b1eb4f",
+        "https://www.discogs.com/release/38440773"
       ]
     },
     {
@@ -136,6 +154,10 @@
           "name": "Tidal",
           "url": "https://tidal.com/album/501900586"
         }
+      ],
+      "sameAs": [
+        "https://musicbrainz.org/release/b9dad58c-54d7-44dd-9c1f-268946c80f7d",
+        "https://www.discogs.com/release/38440791"
       ]
     },
     {
@@ -174,6 +196,10 @@
           "name": "Tidal",
           "url": "https://tidal.com/album/475483510"
         }
+      ],
+      "sameAs": [
+        "https://musicbrainz.org/release/98a3485d-1b79-40fe-940e-9be3f9f02e48",
+        "https://www.discogs.com/release/38440803"
       ]
     }
   ]
