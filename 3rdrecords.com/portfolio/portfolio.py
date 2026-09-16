@@ -154,11 +154,14 @@ img,svg,video{display:block;max-width:100%}
 .gate-in{position:relative;display:grid;justify-items:center;gap:clamp(8px,2vh,20px);padding:16px;text-align:center}
 .emblem{position:relative;width:min(46vw,300px,34svh);aspect-ratio:1}
 .emblem video,.emblem svg{position:absolute;inset:0;width:100%;height:100%}
-.emblem video{mix-blend-mode:screen;-webkit-mask-image:radial-gradient(closest-side,#000 80%,transparent);mask-image:radial-gradient(closest-side,#000 80%,transparent)}
-.emblem.novid svg{animation:emb-in .6s ease forwards,spin 30s linear .6s infinite}
+.emblem video{transition:opacity .45s ease,transform .6s ease;mix-blend-mode:screen;-webkit-mask-image:radial-gradient(closest-side,#000 80%,transparent);mask-image:radial-gradient(closest-side,#000 80%,transparent)}
+.emblem.done video{opacity:0;transform:scale(1.15)}
 .emblem.novid video{display:none}
-.emblem svg{opacity:0;animation:emb-in 1s ease 6.6s forwards,spin 30s linear 7.6s infinite;filter:drop-shadow(-3px 0 0 rgba(255,66,98,.8)) drop-shadow(3px 0 0 rgba(91,116,255,.8)) drop-shadow(0 0 18px rgba(57,224,164,.45))}
-@keyframes emb-in{to{opacity:1}}
+.emblem svg{opacity:0;transform:scale(.4) rotate(-40deg);filter:drop-shadow(-3px 0 0 rgba(255,66,98,.8)) drop-shadow(3px 0 0 rgba(91,116,255,.8)) drop-shadow(0 0 18px rgba(57,224,164,.45))}
+.emblem.done svg{animation:pop .9s cubic-bezier(.2,1.6,.4,1) forwards,spin 30s linear .9s infinite}
+@keyframes pop{0%{opacity:0;transform:scale(.4) rotate(-40deg)}60%{opacity:1}100%{opacity:1;transform:none}}
+.emblem.done::after{content:"";position:absolute;inset:-20%;border-radius:50%;border:2px solid rgba(238,240,245,.5);animation:shock .9s ease-out forwards;pointer-events:none}
+@keyframes shock{from{transform:scale(.3);opacity:1}to{transform:scale(1.2);opacity:0}}
 .gate-word{font:800 clamp(44px,10vw,120px)/.9 var(--display);letter-spacing:-.04em;text-transform:uppercase}
 .gate-hint{color:rgba(238,240,245,.55);font-size:11px}
 .enter{height:48px;min-width:230px;padding:0 30px;border-radius:999px;border:1px solid rgba(238,240,245,.6);background:rgba(5,5,7,.3);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-family:var(--mono);font-size:13px;letter-spacing:.28em;text-transform:uppercase;transition:background-color .2s,color .2s,transform .2s}
@@ -367,6 +370,55 @@ img,svg,video{display:block;max-width:100%}
 .pbar-p{position:absolute;left:0;top:-1px;height:2px;width:0;background:linear-gradient(90deg,var(--red),var(--blue),var(--green))}
 @media (max-width:560px){.pbar .hide-s{display:none}}
 
+/* ---- motion layer ---- */
+.head::after{content:"";position:absolute;left:0;bottom:-1px;height:2px;width:calc(var(--sp,0)*100%);background:linear-gradient(90deg,var(--red),var(--blue),var(--green))}
+.glow-cursor{position:fixed;left:0;top:0;width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;pointer-events:none;z-index:1;opacity:0;transition:opacity .4s;background:radial-gradient(closest-side,rgba(91,116,255,.13),rgba(255,66,98,.06) 50%,transparent 75%);transform:translate(var(--cx,-999px),var(--cy,-999px))}
+@media (pointer:fine){body.moved .glow-cursor{opacity:1}}
+.shards{position:absolute;inset:-10% -5%;z-index:-1;width:110%;height:120%;pointer-events:none;opacity:.55;transform:translate(calc(var(--px,0)*-18px),calc(var(--py,0)*-18px));transition:transform .6s var(--ease)}
+.shards g{transform-box:view-box;fill:none;stroke:rgba(238,240,245,.35);stroke-width:14;animation:shard 14s ease-in-out infinite alternate;transition:transform 1.4s cubic-bezier(.3,1.3,.4,1)}
+.shards g:nth-child(3n){stroke:rgba(91,116,255,.55)}.shards g:nth-child(3n+1){stroke:rgba(255,66,98,.45)}.shards g:nth-child(3n+2){stroke:rgba(57,224,164,.45)}
+@keyframes shard{to{translate:0 -40px;rotate:12deg}}
+.playing .shards g{animation-duration:1.6s}
+.spectrum{position:absolute;left:0;right:0;bottom:49px;height:110px;z-index:-1;width:100%;pointer-events:none;opacity:.8}
+.h1 .ch{display:inline-block;font-style:normal;animation:rise-ch 1s cubic-bezier(.2,.9,.2,1) both;transition:transform .25s,color .25s}
+.h1 .ch:hover{transform:translateY(-.06em) rotate(-4deg);color:var(--blue)}
+@keyframes rise-ch{from{opacity:0;transform:translateY(.4em) rotate(8deg);filter:blur(8px)}}
+.h1{animation:glitch 7s steps(1) 2s infinite}
+@keyframes glitch{0%,93%,100%{text-shadow:-.03em 0 0 rgba(255,66,98,.85),.03em 0 0 rgba(91,116,255,.85),0 0 .4em rgba(57,224,164,.25);transform:none}
+ 94%{text-shadow:-.09em .02em 0 rgba(255,66,98,.9),.08em -.02em 0 rgba(91,116,255,.9),0 0 .4em rgba(57,224,164,.4);transform:translateX(.01em) skewX(-4deg)}
+ 95.5%{text-shadow:.06em 0 0 rgba(255,66,98,.9),-.07em 0 0 rgba(57,224,164,.8);transform:translateX(-.02em)}
+ 97%{text-shadow:-.02em 0 0 rgba(255,66,98,.85),.02em 0 0 rgba(91,116,255,.85);transform:skewX(3deg)}}
+.orb{transform-style:preserve-3d;transition:transform .5s var(--ease)}
+.orb.tilt{animation:none;transform:perspective(900px) rotateX(calc(var(--py,0)*-10deg)) rotateY(calc(var(--px,0)*12deg))}
+.orb .ring{animation-duration:var(--ring,40s)}
+.playing .orb::before{animation:pulse .75s ease-in-out infinite alternate}
+@keyframes pulse{to{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 30px 160px rgba(91,116,255,.45),inset -30px -20px 90px rgba(255,66,98,.3),inset 30px 20px 90px rgba(57,224,164,.22)}}
+.magnet{transition:transform .25s var(--ease),background-color .15s,color .15s,border-color .15s;transform:translate(var(--mx,0),var(--my,0))}
+.slide.cur .media{animation:wipe 1s cubic-bezier(.7,0,.2,1) both}
+@keyframes wipe{from{clip-path:inset(0 100% 0 0 round 14px)}to{clip-path:inset(0 0 0 0 round 14px)}}
+.slide.cur .wt{animation:letters .9s cubic-bezier(.2,.9,.2,1) .15s both}
+@keyframes letters{from{letter-spacing:.2em;opacity:0;filter:blur(10px)}}
+.reveal .h2{clip-path:inset(-20% -5% 100% -5%);transform:translateY(40%);transition:clip-path 1s cubic-bezier(.7,0,.2,1) .1s,transform 1s cubic-bezier(.7,0,.2,1) .1s}
+.reveal.in .h2{clip-path:inset(-20% -5% -35% -5%);transform:none}
+.disco a{position:relative;transition:padding-left .3s var(--ease)}
+.disco a::before{content:"";position:absolute;left:0;bottom:-1px;height:1px;width:0;background:linear-gradient(90deg,var(--red),var(--blue),var(--green));transition:width .5s var(--ease)}
+.disco a:hover{padding-left:8px}.disco a:hover::before{width:100%}
+.disco li{opacity:0;transform:translateX(-12px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.reveal.in li{opacity:1;transform:none}
+.reveal.in li:nth-child(2){transition-delay:.03s}.reveal.in li:nth-child(3){transition-delay:.06s}.reveal.in li:nth-child(4){transition-delay:.09s}.reveal.in li:nth-child(5){transition-delay:.12s}.reveal.in li:nth-child(6){transition-delay:.15s}.reveal.in li:nth-child(7){transition-delay:.18s}.reveal.in li:nth-child(8){transition-delay:.21s}.reveal.in li:nth-child(n+9){transition-delay:.24s}
+.deck{overflow:hidden}
+.arm{position:absolute;right:calc(50% - 150px);top:18px;width:14px;height:150px;transform-origin:50% 8px;transform:rotate(-28deg);transition:transform .8s cubic-bezier(.3,1.4,.4,1);z-index:2}
+.arm::before{content:"";position:absolute;left:0;top:0;width:14px;height:14px;border-radius:50%;background:var(--dim);box-shadow:0 0 0 4px #2c2e39}
+.arm::after{content:"";position:absolute;left:5px;top:10px;width:4px;height:130px;border-radius:2px;background:linear-gradient(#cfd3dc,#8a8f9b);box-shadow:-3px 8px 0 -1px rgba(0,0,0,.3)}
+.playing .arm{transform:rotate(4deg)}
+.disc-wrap{position:relative}
+.facts div{transition:background-color .3s}
+.facts div:hover{background:var(--bg2)}
+.facts strong{background:linear-gradient(90deg,var(--text),var(--text));-webkit-background-clip:text;background-clip:text;transition:color .3s}
+.facts div:hover strong{color:transparent;background-image:linear-gradient(90deg,var(--red),var(--blue),var(--green))}
+.chip{transition:border-color .2s,color .2s,transform .2s}
+.chip:hover{border-color:var(--blue);color:var(--text);transform:translateY(-2px)}
+@media (prefers-reduced-motion:reduce){.shards,.spectrum,.glow-cursor,.arm{display:none}.h1{animation:none}.reveal .h2,.disco li{clip-path:none;opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
@@ -407,8 +459,20 @@ function scInit(){
   const E = SC.Widget.Events;
   P.w.bind(E.READY, () => {
     P.ready = true;
-    P.w.getSounds(s => { P.list = s || []; P.list.forEach((x, i) => { const el = $$('.tl .t')[i]; if (el && x && x.title) el.textContent = x.title; }); });
-    if (P.want) { P.w.play(); }
+    const fill = () => P.w.getSounds(s => {
+      P.list = s || [];
+      const ol = $('.tl'), tpl = ol && ol.lastElementChild;
+      P.list.forEach((x, i) => {
+        let li = ol.children[i];
+        if (!li && tpl) { li = tpl.cloneNode(true); $('button', li).dataset.track = i; $('.n', li).textContent = String(i + 1).padStart(2, '0'); ol.appendChild(li); }
+        if (li && x && x.title) $('.t', li).textContent = x.title.replace(/^\[(.*)\]$/, '$1');
+      });
+      while (ol.children.length > P.list.length && P.list.length) ol.lastElementChild.remove();
+      titles.length = 0; $$('.tl .t').forEach(t => titles.push(t.textContent));
+      const c = $('#cue-count'); if (c && P.list.length) c.textContent = P.list.length;
+    });
+    fill(); setTimeout(fill, 3000);
+    if (P.want) { if (P.pending != null) P.w.skip(P.pending); P.w.play(); }
   });
   P.w.bind(E.PLAY, () => { setPlaying(true); P.w.getCurrentSoundIndex(i => setNow(i)); P.w.getDuration(d => { P.dur = d; $$('[data-dur]').forEach(n => n.textContent = fmt(d)); }); });
   P.w.bind(E.PAUSE, () => setPlaying(false));
@@ -422,7 +486,7 @@ function scInit(){
 const sc = { play(){ P.want = true; body.classList.add('has-bar'); if (P.ready) P.w.play(); },
   toggle(){ if (!P.ready) return sc.play(); P.w.toggle(); },
   next(){ P.ready && P.w.next(); }, prev(){ P.ready && P.w.prev(); },
-  at(i){ body.classList.add('has-bar'); setNow(i); if (P.ready) { P.w.skip(i); P.w.play(); } else { P.want = true; } },
+  at(i){ body.classList.add('has-bar'); setNow(i); if (P.ready) { P.w.skip(i); P.w.play(); } else { P.want = true; P.pending = i; } },
   pause(){ P.ready && P.playing && P.w.pause(); } };
 if (window.SC) scInit(); else { const s = $('#sc-api'); s && s.addEventListener('load', scInit); }
 document.addEventListener('click', ev => {
@@ -453,8 +517,15 @@ if (gate) {
     body.classList.add('locked');
     $('#enter').focus({ preventScroll: true });
     const v = $('video', gate), em = $('.emblem', gate);
-    const novid = () => em && em.classList.add('novid');
-    if (v && !reduce) { v.addEventListener('error', novid); v.play().catch(novid); } else novid();
+    const done = () => em && em.classList.add('done');
+    const novid = () => { em && em.classList.add('novid'); done(); };
+    if (v && !reduce) {
+      v.addEventListener('error', novid);
+      v.addEventListener('timeupdate', () => { if (v.duration && v.currentTime > v.duration - .45) done(); });
+      v.addEventListener('ended', done);
+      setTimeout(done, 9000);
+      v.play().catch(novid);
+    } else novid();
   }
   $('#enter').addEventListener('click', () => leave(true));
   $('#enter-quiet').addEventListener('click', ev => { ev.preventDefault(); leave(false); });
@@ -525,6 +596,76 @@ if ('IntersectionObserver' in window && !reduce) {
   $$('main section[id]').forEach(s => so.observe(s));
 } else $$('.reveal').forEach(el => el.classList.add('in'));
 
+/* ---------- motion layer ---------- */
+if (!reduce) {
+  const root = document.documentElement, orb = $('.orb'), shards = $('.shards'), glow = $('.glow-cursor');
+  let raf = 0, mx = 0, my = 0;
+  addEventListener('pointermove', ev => {
+    if (ev.pointerType !== 'mouse') return;
+    body.classList.add('moved');
+    mx = ev.clientX; my = ev.clientY;
+    if (!raf) raf = requestAnimationFrame(() => {
+      raf = 0;
+      glow && (glow.style.setProperty('--cx', mx + 'px'), glow.style.setProperty('--cy', my + 'px'));
+      const px = (mx / innerWidth - .5) * 2, py = (my / innerHeight - .5) * 2;
+      if (orb) { orb.classList.add('tilt'); orb.style.setProperty('--px', px.toFixed(3)); orb.style.setProperty('--py', py.toFixed(3)); }
+      shards && (shards.style.setProperty('--px', px.toFixed(3)), shards.style.setProperty('--py', py.toFixed(3)));
+    });
+  }, { passive: true });
+  addEventListener('scroll', () => {
+    const h = root.scrollHeight - innerHeight;
+    root.style.setProperty('--sp', h > 0 ? (scrollY / h).toFixed(4) : 0);
+  }, { passive: true });
+  // magnetic controls
+  $$('.magnet').forEach(el => {
+    el.addEventListener('pointermove', ev => {
+      if (ev.pointerType !== 'mouse') return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', ((ev.clientX - r.left - r.width / 2) * .3).toFixed(1) + 'px');
+      el.style.setProperty('--my', ((ev.clientY - r.top - r.height / 2) * .3).toFixed(1) + 'px');
+    });
+    el.addEventListener('pointerleave', () => { el.style.setProperty('--mx', '0px'); el.style.setProperty('--my', '0px'); });
+  });
+  // shards: scattered, they gather into the emblem while music plays
+  if (shards) {
+    const gs = $$('g', shards);
+    const scatter = () => gs.forEach(g => {
+      const a = Math.random() * Math.PI * 2, d = 250 + Math.random() * 650;
+      g.style.transform = `translate(${Math.cos(a) * d}px,${Math.sin(a) * d}px) rotate(${(Math.random() * 180 - 90) | 0}deg) scale(${(.7 + Math.random() * .6).toFixed(2)})`;
+    });
+    const gather = () => gs.forEach(g => g.style.transform = 'none');
+    scatter();
+    new MutationObserver(() => body.classList.contains('playing') ? gather() : scatter()).observe(body, { attributes: true, attributeFilter: ['class'] });
+  }
+  // spectrum
+  const cv = $('.spectrum');
+  if (cv && cv.getContext) {
+    const ctx = cv.getContext('2d'); let vis = true, t = 0, amp = .25;
+    const size = () => { cv.width = cv.clientWidth * devicePixelRatio; cv.height = cv.clientHeight * devicePixelRatio; };
+    size(); addEventListener('resize', size);
+    new IntersectionObserver(es => { vis = es[0].isIntersecting; if (vis) loop(); }).observe(cv);
+    const N = 72;
+    function loop(){
+      if (!vis) return;
+      t += .016;
+      amp += ((body.classList.contains('playing') ? 1 : .22) - amp) * .04;
+      const W = cv.width, H = cv.height, bw = W / N;
+      ctx.clearRect(0, 0, W, H);
+      const g = ctx.createLinearGradient(0, 0, W, 0);
+      g.addColorStop(0, 'rgba(255,66,98,.55)'); g.addColorStop(.5, 'rgba(91,116,255,.6)'); g.addColorStop(1, 'rgba(57,224,164,.55)');
+      ctx.fillStyle = g;
+      for (let i = 0; i < N; i++) {
+        const x = i / N;
+        const v = Math.abs(Math.sin(x * 9 + t * 2.1) * .5 + Math.sin(x * 23 - t * 3.3) * .3 + Math.sin(x * 51 + t * 5.2) * .2);
+        const h = Math.max(2, v * amp * H * (1 - Math.abs(x - .5) * .9));
+        ctx.fillRect(i * bw + bw * .2, H - h, bw * .6, h);
+      }
+      requestAnimationFrame(loop);
+    }
+    loop();
+  }
+}
+
 /* ---------- copy e-mail ---------- */
 const cp = $('#copy');
 cp && cp.addEventListener('click', async () => {
@@ -558,6 +699,20 @@ def symbols(ROOT):
             '<symbol id="i-out" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8 16 16 8m-7 0h7v7"/></symbol>'
             '<symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="m6 6 12 12M18 6 6 18"/></symbol>'
             '</svg>')
+
+
+def letters(word, start):
+    return "".join(f'<i class="ch c{start + k}">{e(ch)}</i>' for k, ch in enumerate(word))
+
+
+def shards_svg(ROOT):
+    d = json.loads((ROOT / "assets" / "lead-major.json").read_text())
+    gs = "".join(f'<g><path transform="{d["transform"]}" d="{p["d"]}"/></g>' for p in d["pieces"])
+    return f'<svg class="shards" viewBox="{d["viewBox"]}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">{gs}</svg>'
+
+
+def letter_css(n=9):
+    return "".join(f".h1 .c{k}{{animation-delay:{.25 + k * .06:.2f}s}}" for k in range(n))
 
 
 def icon(name, cls="ico"):
@@ -600,7 +755,7 @@ def page(P, I, fonts, domain, ROOT):
     tracks = "".join(
         f'<li><button type="button" data-track="{k}"><span class="n">{k + 1:02d}</span><span class="t">{e(t)}</span>{bars()}</button></li>'
         for k, t in enumerate(S["tracks"]))
-    sc_src = ("https://w.soundcloud.com/player/?url=" + urllib.parse.quote(S["url"], safe="")
+    sc_src = ("https://w.soundcloud.com/player/?url=" + urllib.parse.quote(S["api"], safe="")
               + "&auto_play=false&visual=false&hide_related=true&show_comments=false&show_user=true"
               + "&show_reposts=false&show_teaser=false&buying=false&sharing=false&download=false&color=%235b74ff")
 
@@ -608,9 +763,9 @@ def page(P, I, fonts, domain, ROOT):
     disco = []
     for g in P["discography"]:
         rows = "".join(
-            f'<li><a href="https://music.apple.com/album/{it[3]}" rel="noopener" target="_blank">'
+            f'<li><a href="{("https://open.spotify.com/album/" + it[4]) if len(it) > 4 and it[4] else ("https://open.spotify.com/search/" + urllib.parse.quote(it[1] + " " + it[2]))}" rel="noopener" target="_blank">'
             f'<span class="y">{e(it[0])}</span><span><span class="dt">{e(it[1])}</span><span class="da">{e(it[2])}</span></span>'
-            f'<span class="ar" aria-hidden="true">↗</span><span class="sr"> on Apple Music (opens in a new tab)</span></a></li>'
+            f'<span class="ar" aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a></li>'
             for it in g["items"])
         disco.append(f'<div class="reveal"><h3>{e(g["group"])} <small>{len(g["items"])}</small></h3><ul>{rows}</ul></div>')
     total = sum(len(g["items"]) for g in P["discography"])
@@ -618,7 +773,7 @@ def page(P, I, fonts, domain, ROOT):
     facts = "".join(f'<div><strong>{e(a)}</strong><span>{e(b)}</span></div>' for a, b in P["facts"])
     credits = "".join(f'<span class="chip">{e(c)}</span>' for c in P["credits"])
     socials = "".join(f'<a class="btn btn-s" href="{e(s["url"])}" rel="noopener me" target="_blank">{e(s["name"])}</a>' for s in P["socials"])
-    ticker_items = [f"{t}" for t in ["Composer", "Sound engineer", "Mix & master", "Sound design", "Audio post"] + P["credits"]]
+    ticker_items = P.get("roles_ticker", P["tags"]) * 3
     ticker = "".join(f'<span class="mono up">{e(t)}</span>' for t in ticker_items) * 2
     tags = "".join(f'<span class="chip">{e(t)}</span>' for t in P["tags"])
 
@@ -640,7 +795,7 @@ def page(P, I, fonts, domain, ROOT):
     ld["@graph"][1].pop("founder")
     ld_json = json.dumps(ld, ensure_ascii=False, separators=(",", ":"))
 
-    css = CSS
+    css = CSS + letter_css()
     if not fonts:
         css = re.sub(r"@font-face\{[^}]*\}", "", css)
     css = "".join(l.strip() for l in css.splitlines())
@@ -687,7 +842,7 @@ def page(P, I, fonts, domain, ROOT):
   </div>
 </div>
 <a class="skip" href="#main">Skip to content</a>
-<div class="grain" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div><div class="glow-cursor" aria-hidden="true"></div>
 <header class="head"><div class="wrap head-row">
   <a class="brand" href="#top" aria-label="Lead Major, back to top"><svg viewBox="0 0 2154 2106" aria-hidden="true"><use href="#lm"/></svg><span>lead<b>.</b>major</span></a>
   <nav class="nav" aria-label="Sections"><ul>
@@ -701,14 +856,15 @@ def page(P, I, fonts, domain, ROOT):
 
 <main id="main" tabindex="-1">
 <section class="stage" id="top" aria-labelledby="h1">
+  {shards_svg(ROOT)}<canvas class="spectrum" aria-hidden="true"></canvas>
   <div class="wrap stage-grid">
     <div>
       <p class="kick mono up">{e(P["person"])} · Portfolio</p>
-      <h1 class="h1 chroma" id="h1"><span>Lead</span><span>Major</span></h1>
+      <h1 class="h1 chroma" id="h1" aria-label="Lead Major"><span aria-hidden="true">{letters("Lead", 0)}</span><span aria-hidden="true">{letters("Major", 4)}</span></h1>
       <p class="lede">{e(P["lede"])}</p>
       <p class="sub">{e(P["sub"])}</p>
       <div class="tags">{tags}</div>
-      <div class="cta"><a class="btn btn-p" href="#work">See the work {icon("i-right")}</a>
+      <div class="cta"><a class="btn btn-p magnet" href="#work">See the work {icon("i-right")}</a>
         <button class="btn" type="button" data-toggle aria-label="Play">{icon("i-play")}<span>Play the sync reel</span></button></div>
     </div>
     <div class="orb">
@@ -724,9 +880,9 @@ def page(P, I, fonts, domain, ROOT):
   <div class="wrap">
     <div class="sec-head">
       <div><p class="label mono up">Selected work</p><h2 class="h2" id="work-h">Projects</h2></div>
-      <div class="ctrl"><button class="round" type="button" id="prev" aria-label="Previous project">{icon("i-left")}</button>
+      <div class="ctrl"><button class="round magnet" type="button" id="prev" aria-label="Previous project">{icon("i-left")}</button>
         <p class="count" id="count" aria-hidden="true"><b>01</b> / {len(W):02d}</p>
-        <button class="round" type="button" id="next" aria-label="Next project">{icon("i-right")}</button></div>
+        <button class="round magnet" type="button" id="next" aria-label="Next project">{icon("i-right")}</button></div>
     </div>
     <div class="slider" id="slider" aria-roledescription="carousel" aria-label="Selected projects">
       <p class="sr" aria-live="polite" id="live"></p>
@@ -751,16 +907,16 @@ def page(P, I, fonts, domain, ROOT):
 <section class="sec" id="sync" aria-labelledby="sync-h">
   <div class="wrap">
     <div class="sec-head reveal"><div><p class="label mono up">Music for picture</p><h2 class="h2" id="sync-h">Sync reel</h2></div>
-      <p class="dim">{len(S["tracks"])} cues, from jazz noir to orchestral and hyperpop.</p></div>
+      <p class="dim"><span id="cue-count">{len(S["tracks"])}</span> cues, from jazz noir to orchestral and hyperpop.</p></div>
     <div class="sync">
       <div class="deck reveal">
-        <div class="disc" aria-hidden="true"><svg viewBox="0 0 2154 2106"><use href="#lm"/></svg></div>
+        <div class="disc-wrap"><div class="arm" aria-hidden="true"></div><div class="disc" aria-hidden="true"><svg viewBox="0 0 2154 2106"><use href="#lm"/></svg></div></div>
         <div class="now" aria-live="polite"><span class="mono up dim">Now playing</span><strong data-now>{e(S["tracks"][0])}</strong></div>
         <div class="seek" data-seek role="presentation"><i data-prog></i></div>
         <div class="times mono"><span data-pos>0:00</span><span data-dur>–:––</span></div>
         <div class="transport">
           <button class="round" type="button" data-prev aria-label="Previous cue">{icon("i-prev")}</button>
-          <button class="round big" type="button" data-toggle aria-label="Play"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg></button>
+          <button class="round big magnet" type="button" data-toggle aria-label="Play"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg></button>
           <button class="round" type="button" data-next aria-label="Next cue">{icon("i-next")}</button>
         </div>
         <a class="sc-credit mono" href="{e(S["url"])}" rel="noopener" target="_blank">Listen on SoundCloud ↗</a>
@@ -774,7 +930,7 @@ def page(P, I, fonts, domain, ROOT):
 <section class="sec" id="discography" aria-labelledby="disco-h">
   <div class="wrap">
     <div class="sec-head reveal"><div><p class="label mono up">Everything released</p><h2 class="h2" id="disco-h">Discography</h2></div>
-      <p class="dim">{total} releases since 2018 · links open Apple Music</p></div>
+      <p class="dim">{total} releases since 2018 · listen on Spotify</p></div>
     <div class="disco">{''.join(disco)}</div>
   </div>
 </section>

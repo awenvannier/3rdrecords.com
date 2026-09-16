@@ -7,10 +7,10 @@
   "lede": "Composer & sound engineer.",
   "sub": "I bring your musical and sonic ideas to life: composition, production, mix & master, sound design and audio post-production for artists, films and labels.",
   "tags": [
-    "composition",
-    "mix & master",
-    "sound design",
-    "audio post"
+    "Sound engineer",
+    "Composer",
+    "Sound designer",
+    "Audio editor"
   ],
   "email": "leadmajor.prod@gmail.com",
   "location": "France & worldwide",
@@ -130,10 +130,6 @@
         {
           "name": "Spotify",
           "url": "https://open.spotify.com/album/0DcQg5HubaTSsobHuirf9f"
-        },
-        {
-          "name": "Apple Music",
-          "url": "https://music.apple.com/album/1743419755"
         }
       ]
     },
@@ -155,8 +151,8 @@
           "url": "https://open.spotify.com/artist/1pajE7rKmzVHq2S6dLcgvG"
         },
         {
-          "name": "Lofi Girl · Back to School",
-          "url": "https://music.apple.com/album/6790608807"
+          "name": "High School Rooftop (Lofi Girl)",
+          "url": "https://open.spotify.com/album/4YBkGHuWGuXuK38Shadql4"
         }
       ]
     },
@@ -176,12 +172,12 @@
       "text": "My first fully self-directed EP, from the initial concept to the final release. Mostly composed by me, it features eight artists and blends hip-hop, jazz and pop into one cohesive project.",
       "links": [
         {
-          "name": "SoundCloud",
-          "url": "https://on.soundcloud.com/r0yHsAMeVNaRtgemER"
+          "name": "Spotify",
+          "url": "https://open.spotify.com/album/2xI3ZuOyil96Z7CRVMTcoV"
         },
         {
-          "name": "Apple Music",
-          "url": "https://music.apple.com/album/1523882378"
+          "name": "SoundCloud",
+          "url": "https://on.soundcloud.com/r0yHsAMeVNaRtgemER"
         }
       ]
     },
@@ -218,8 +214,8 @@
       "text": "A collaboration released on Chillhop Music and picked for Chillhop Essentials Summer 2020 and the Chillhop Yearmix 2020.",
       "links": [
         {
-          "name": "Apple Music",
-          "url": "https://music.apple.com/album/1518533385"
+          "name": "Spotify",
+          "url": "https://open.spotify.com/album/2zoRfOYmkIGJmTTv0sbAuJ"
         }
       ]
     }
@@ -246,8 +242,11 @@
       "Piano Electronic",
       "Orchestral When You're Around",
       "Electronic Trap",
-      "Main Theme – Maze Bounders",
-      "Maze Bounders – A Way Out"
+      "Main Theme - Maze Bounders",
+      "Maze Bounders - A Way Out",
+      "Maze Bounders - Reflections",
+      "6 · Grand Bleu",
+      "Test n°5"
     ]
   },
   "discography": [
@@ -258,109 +257,127 @@
           "2021",
           "Waiting (feat. Djouher)",
           "Lead Major & Katsu",
-          1556959913
+          1556959913,
+          "4brdPHPDq2g2H3HciRVPaZ"
         ],
         [
           "2020",
           "Last Time",
           "Lead Major & Katsu",
-          1543948917
+          1543948917,
+          "0o4uDrOK4uuWN1qssOMAwT"
         ],
         [
           "2020",
           "Crépuscule",
           "Otaam, Needraw & Lead Major",
-          1726217380
+          1726217380,
+          "3DBIkU5KzQFN3iPSSl6got"
         ],
         [
           "2020",
           "Little Big Bird (EP)",
           "Lead Major",
-          1523882378
+          1523882378,
+          "2xI3ZuOyil96Z7CRVMTcoV"
         ],
         [
           "2020",
           "City Lights",
           "Needraw & Lead Major",
-          1532284935
+          1532284935,
+          "76ELXMhppC85U7agb7RxAe"
         ],
         [
           "2020",
           "Pocari",
           "Lead Major",
-          1508444815
+          1508444815,
+          "0nUfOjdcysSJQHipOqioEP"
         ],
         [
           "2020",
           "Ascent III",
           "Lead Major",
-          1494790694
+          1494790694,
+          "011LnIFhSlzhNxGUc4E3RN"
         ],
         [
           "2019",
           "Hollow Weeb",
           "Lead Major & Needraw",
-          1487262036
+          1487262036,
+          "7sFXmtUMEsAdrhGv1Ih6UZ"
         ],
         [
           "2019",
           "Amethyst (feat. Needraw & Syazh)",
           "Lead Major",
-          1480730019
+          1480730019,
+          "5KbfxfzJMNx8025vs3zTSf"
         ],
         [
           "2019",
           "Monsoon (feat. Anbuu)",
           "Lead Major",
-          1467666167
+          1467666167,
+          "3ovtRML4Dn42npN3BetOkH"
         ],
         [
           "2019",
           "Ascent II",
           "Lead Major",
-          1462428742
+          1462428742,
+          "6Z0MJ9RWb19ACeiMJgtBGm"
         ],
         [
           "2019",
           "Odaiba",
           "Lead Major",
-          1508464648
+          1508464648,
+          "7cwcIMq8N3TlTehWfaW4Vg"
         ],
         [
           "2019",
           "Overcome",
           "Lead Major",
-          1457334303
+          1457334303,
+          "75Hgj8zBoTASMEywrkLs3t"
         ],
         [
           "2019",
           "Aftermath",
           "Lead Major & d/rose",
-          1494790724
+          1494790724,
+          "578G47hznc4WKlYLalN4cP"
         ],
         [
           "2019",
           "Ascent",
           "Lead Major",
-          1449228147
+          1449228147,
+          "5I1BNGZMqUL8OKPiF1JsPH"
         ],
         [
           "2018",
           "Umbrella",
           "Lead Major",
-          1449209506
+          1449209506,
+          "5QkbFwG2l9UmwCfklGIgmb"
         ],
         [
           "2018",
           "Gourmandise",
           "Lead Major",
-          1449212106
+          1449212106,
+          "3LsYpLTHq3jm81HiVQIoym"
         ],
         [
           "2018",
           "Moshi Moshi",
           "Lead Major",
-          1449389575
+          1449389575,
+          "7qkFsAQAW8JhClp7zCV9tl"
         ]
       ]
     },
@@ -371,55 +388,64 @@
           "2026",
           "I Killed Her",
           "Djouher",
-          1879817761
+          1879817761,
+          "1ITFYNsW5lqz9MgU9kOY9h"
         ],
         [
           "2026",
           "For My Child (feat. Lead Major)",
           "Keshh",
-          6809207342
+          6809207342,
+          ""
         ],
         [
           "2022",
           "Kingdom (EP)",
           "Djouher",
-          1743419755
+          1743419755,
+          "0DcQg5HubaTSsobHuirf9f"
         ],
         [
           "2021",
           "111",
           "Djouher, Red Farrow & Lead Major",
-          1625572153
+          1625572153,
+          "3DlFiBv8uC3GjtaY0l9bhU"
         ],
         [
           "2021",
           "Motion",
           "Aoko & Lead Major",
-          1563640039
+          1563640039,
+          "2cWVUIBj39cfsYWI1I2Hbk"
         ],
         [
           "2021",
           "Incendio (feat. Lead Major)",
           "Opsylone",
-          1558464292
+          1558464292,
+          ""
         ],
         [
           "2020",
           "Le Promeneur (feat. Needraw & Lead Major)",
           "HoKø",
-          1525337593
+          1525337593,
+          "2I0AcnPVkiI4vT91PIyKym"
         ],
         [
           "2020",
           "Anger (feat. Lead Major)",
           "Djouher",
-          1743419348
+          1743419348,
+          "77q4sUuHaoBSkI1CH7kB34"
         ],
         [
           "2020",
           "Last Night (feat. Lead Major)",
           "goosetaf, Anbuu & Philanthrope",
-          1518533385
+          1518533385,
+          "2zoRfOYmkIGJmTTv0sbAuJ"
         ]
       ]
     },
@@ -430,97 +456,113 @@
           "2026",
           "Tabarka",
           "nytø, liid. & Swink",
-          6793521121
+          6793521121,
+          "4QBSWSqDpmvkDPjz0QQ292"
         ],
         [
           "2026",
           "Moving Out",
           "liid.",
-          6771727699
+          6771727699,
+          "5virGSX0jSQwO7SrPmj1Xs"
         ],
         [
           "2026",
           "Mahogany",
           "Swink, nytø & liid.",
-          1854420205
+          1854420205,
+          "6FeJWT2I6KH84Es8NIz9OF"
         ],
         [
           "2026",
           "2070s (EP)",
           "liid. & Anemøia",
-          1851576157
+          1851576157,
+          "3LCcBsrddSUZi2AET0eVoy"
         ],
         [
           "2025",
           "Velvet",
           "Swink, liid. & nytø",
-          1855894582
+          1855894582,
+          "4hu9IPic41oslYVSMIWQuw"
         ],
         [
           "2025",
           "High School Rooftop (Lofi Girl)",
           "nytø, Swink & liid.",
-          6790608807
+          6790608807,
+          "4YBkGHuWGuXuK38Shadql4"
         ],
         [
           "2025",
           "Little Parrot",
           "Swink & liid.",
-          1820856562
+          1820856562,
+          "4uijDNV3U46jEG1gcQaYLT"
         ],
         [
           "2025",
           "Corail",
           "liid. & nytø",
-          1814725384
+          1814725384,
+          "7kcqcdLNrcCYBuulqwnRQQ"
         ],
         [
           "2025",
           "Serenade",
           "Swink & liid.",
-          1811096124
+          1811096124,
+          "5crdRSF53XnioB0IJME6J5"
         ],
         [
           "2025",
           "Quiet Fields",
           "liid., Needraw & nytø",
-          1812017583
+          1812017583,
+          "5M5oMja4GtykxCnF2QZEkn"
         ],
         [
           "2025",
           "Afterlife",
           "liid. & Anemøia",
-          1792672134
+          1792672134,
+          "0bR7j1zcj9cXoPmDr8xb1I"
         ],
         [
           "2025",
           "Chromatic",
           "Anemøia & liid.",
-          1777711932
+          1777711932,
+          "1oMxiU5jY1UjJmRTlzExda"
         ],
         [
           "2025",
           "Murmurs",
           "nytø & liid.",
-          1772182889
+          1772182889,
+          "7wIiMjStNp2ZunDezuu1ym"
         ],
         [
           "2024",
           "Echoes of You",
           "nytø & liid.",
-          1783368538
+          1783368538,
+          "0fncyRNWExb3y4k4OYBCJF"
         ],
         [
           "2024",
           "Winter Breeze",
           "nytø, liid. & uub.",
-          1780644911
+          1780644911,
+          "3gSKMC3HkoblnbJcn6H0S5"
         ],
         [
           "2021",
           "Withholding",
           "Anbuu, goosetaf & liid.",
-          1567217400
+          1567217400,
+          "69NGCoAMKXD0pSEOHXt5Tg"
         ]
       ]
     }
@@ -582,5 +624,11 @@
     "display": "https://cdn.jsdelivr.net/npm/@fontsource-variable/bricolage-grotesque@5.3.0/files/bricolage-grotesque-latin-wght-normal.woff2",
     "body": "https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/files/inter-latin-wght-normal.woff2",
     "mono": "https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.3.0/files/jetbrains-mono-latin-400-normal.woff2"
-  }
+  },
+  "roles_ticker": [
+    "Sound engineer",
+    "Composer",
+    "Sound designer",
+    "Audio editor"
+  ]
 }
