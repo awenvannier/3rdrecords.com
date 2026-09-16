@@ -12,19 +12,35 @@ import base64, datetime as dt, hashlib, html, io, json, pathlib, re, shutil
 ROOT = pathlib.Path(__file__).parent
 DIST = ROOT / "dist"
 S = json.loads((ROOT / "site.json").read_text(encoding="utf-8"))
-L, R, ARTISTS, D = S["label"], S["release"], S["artists"], S["domain"].rstrip("/")
+L, RELEASES, ARTISTS, D = S["label"], S["releases"], S["artists"], S["domain"].rstrip("/")
+R = RELEASES[0]
 e = lambda s: html.escape(s, quote=True)
-date = dt.date.fromisoformat(R["date"])
 TODAY = dt.date.today().isoformat()
-COVER = R["image"]["base"]
-ORIGINS = sorted({re.match(r"https://[^/]+", u).group(0) for u in [COVER] + [a["image"] for a in ARTISTS] if u.startswith("https://")})
+IMG_URLS = [u for rel in RELEASES for kind in ("jpg", "webp") for u in rel["image"].get(kind, {}).values()]
+ORIGINS = sorted({re.match(r"https://[^/]+", u).group(0) for u in IMG_URLS + [a["image"] for a in ARTISTS] if u.startswith("https://")})
+
+
+def artist_of(rel):
+    return next((a for a in ARTISTS if a["name"] == rel["artist"]), None)
+
+
+def fmt_date(iso):
+    d = dt.date.fromisoformat(iso)
+    return f"{d.day} {d.strftime('%B %Y')}"
+
+
+def picture(rel, cls, sizes, w=640):
+    im = rel["image"]
+    src = "".join([f'<source type="image/webp" srcset="{im["webp"]["640"]} 640w, {im["webp"]["1200"]} 1200w" sizes="{sizes}">'] if im.get("webp") else [])
+    return (f'<picture>{src}<img class="{cls}" src="{im["jpg"]["640"]}" srcset="{im["jpg"]["640"]} 640w, {im["jpg"]["1200"]} 1200w" '
+            f'sizes="{sizes}" width="{w}" height="{w}" alt="{e(im["alt"])}" loading="lazy" decoding="async"></picture>')
 
 C = {"choco": "#512321", "orange": "#F6A10E", "ink": "#1D1D1B", "white": "#FEFEFE", "grey": "#9E9E9E"}
 
 CB = L.get("createdBy")
 TITLE = f"{L['name']} – Record label · {R['artist']}, {R['title']}"
 DESC = (f"{L['name']} is a record label created by {CB['name']}, with {', '.join(a['name'] for a in ARTISTS)}. "
-        f"Listen to the latest {R['type'].lower()}, “{R['title']}” by {R['artist']}, on Spotify, Apple Music, YouTube and Deezer.")
+        f"Listen to the latest {R['type'].lower()}, “{R['title']}” by {R['artist']}, on {', '.join(l['name'] for l in R['links'][:3])}.")
 
 
 def svg_path(name):
@@ -130,7 +146,7 @@ ul{list-style:none;margin:0;padding:0}
 .listen a:hover .pf{color:var(--orange)}
 .listen a:hover .act{color:var(--white)}
 .sec>h2,.foot h2{font-size:clamp(3rem,8vw,5.5rem)}
-.roster{display:grid;gap:1.5rem;margin-top:2.5rem}
+.roster{display:grid;gap:1.5rem;margin-top:2.5rem}.cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,13rem),1fr));gap:2rem 1.5rem;margin-top:2.5rem}.cat a{display:block;text-decoration:none}.cat img{width:100%;aspect-ratio:1;background:var(--choco);transition:transform .4s}.cat a:hover img{transform:rotate(-2deg) scale(1.02)}.cat h3{font-size:clamp(1.5rem,3vw,2rem);margin-top:.9rem}.cat p{margin:.35rem 0 0;color:var(--grey)}.cat a:hover h3{color:var(--orange)}
 .artist{position:relative;display:block;background:var(--choco);text-decoration:none;overflow:hidden}
 .artist img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 58%;transition:transform .5s}.artist img.c{object-position:50% 50%}
 .artist div{position:absolute;z-index:1;inset:auto 0 0;padding:1.25rem 1.25rem 1.1rem;background:linear-gradient(to top,rgba(29,29,27,.92),rgba(29,29,27,0))}
@@ -166,8 +182,7 @@ CSP = (f"default-src 'none'; connect-src 'self'; img-src 'self' {' '.join(ORIGIN
 
 
 def jsonld():
-    lid, rid = f"{D}/#label", f"{D}/#{R['slug']}"
-    main_artist = next(a for a in ARTISTS if a["name"] == R["artist"])
+    lid = f"{D}/#label"
     graph = [
         {"@type": "WebSite", "@id": f"{D}/#website", "url": f"{D}/", "name": L["name"],
          "inLanguage": "en", "publisher": {"@id": lid}},
@@ -181,16 +196,18 @@ def jsonld():
     for a in ARTISTS:
         graph.append({"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"],
                       "sameAs": [a["url"]], "genre": a.get("genre"), "recordLabel": {"@id": lid}})
-    graph.append({"@type": "MusicAlbum", "@id": rid, "name": R["title"],
-                  "albumReleaseType": f"https://schema.org/{R['type']}Release",
-                  "byArtist": {"@id": main_artist["id"]}, "datePublished": R["date"],
-                  "image": f"{COVER}-1200.jpg", "url": f"{D}/#{R['slug']}",
-                  "sameAs": [l["url"] for l in R["links"] if "watch?v=" not in l["url"]],
-                  "numTracks": 1 if R["type"] == "Single" else None,
-                  "albumRelease": {"@type": "MusicRelease", "name": R["title"], "recordLabel": {"@id": lid},
-                                   "gtin13": R.get("upc"), "datePublished": R["date"]},
-                  "track": {"@type": "MusicRecording", "name": R["title"], "duration": R.get("duration"),
-                            "byArtist": {"@id": main_artist["id"]}}})
+    for rel in RELEASES:
+        art = artist_of(rel)
+        rid = f"{D}/#{rel['slug']}"
+        graph.append({"@type": "MusicAlbum", "@id": rid, "name": rel["title"],
+                      "albumReleaseType": f"https://schema.org/{rel['type']}Release",
+                      "byArtist": {"@id": art["id"]} if art else {"@type": "MusicGroup", "name": rel["artist"]},
+                      "datePublished": rel["date"], "image": rel["image"]["jpg"]["1200"], "url": f"{D}/#{rel['slug']}",
+                      "sameAs": [l["url"] for l in rel["links"] if "watch?v=" not in l["url"]],
+                      "numTracks": 1 if rel["type"] == "Single" else None,
+                      "albumRelease": {"@type": "MusicRelease", "name": rel["title"], "recordLabel": {"@id": lid},
+                                       "gtin13": rel.get("upc"), "datePublished": rel["date"]},
+                      "track": {"@type": "MusicRecording", "name": rel["title"], "duration": rel.get("duration")}})
 
     def clean(o):
         if isinstance(o, dict):
@@ -231,7 +248,7 @@ CENTER = ' class="c"'
 
 def index():
     t = e(R["title"])
-    main_artist = next(a for a in ARTISTS if a["name"] == R["artist"])
+    main_artist = artist_of(R)
     links = "".join(
         f'<li><a href="{e(l["url"])}"><span class="pf">{e(l["name"])}</span>'
         f'<span class="act up">{"Watch" if "watch?v=" in l["url"] else "Listen"}'
@@ -246,10 +263,15 @@ def index():
                 f'<div><h3>{e(a["name"])}</h3><p class="up">{e(a["role"])} · '
                 f'{e(a.get("linkLabel", "Official website"))} ↗</p></div></a></li>')
     roster = "".join(card(a) for a in ARTISTS)
+    catalog = "".join(
+        f'<li id="{rel["slug"]}"><a href="{e(rel["links"][0]["url"])}">{picture(rel, "", "(min-width:40rem) 16rem, 45vw", 640)}'
+        f'<h3>{e(rel["title"])}</h3><p class="up">{e(rel["artist"])} · {e(rel["type"])} · <time datetime="{rel["date"]}">{dt.date.fromisoformat(rel["date"]).year}</time></p>'
+        f'<span class="sr"> on {e(rel["links"][0]["name"])}</span></a></li>'
+        for rel in RELEASES)
     first = R["links"][0]
     apple = next((l for l in R["links"] if l["name"] == "Apple Music"), None)
     bar = f'<a href="{e(first["url"])}">{e(first["name"])}</a>' + (f'<a href="{e(apple["url"])}">Apple Music</a>' if apple else "")
-    year = max(date.year, dt.date.today().year)
+    year = max(dt.date.fromisoformat(R["date"]).year, dt.date.today().year)
     items = [f"<b>{t}</b> {e(R['artist'])}", "Out now", e(L["name"]), f"Created by {e(CB['name'])}"]
     TICK = "".join(f"<span>{i}</span>" for i in items * 2)
     return (
@@ -257,7 +279,7 @@ def index():
         + f'<script type="application/ld+json">{jsonld()}</script></head><body>'
         + SYMBOLS + '<a class="skip up" href="#release">Skip to the latest release</a>'
         + f'<header class="top"><a class="brand" href="/" aria-label="{e(L["name"])} home">{circle(C["orange"], ref=True)}</a>'
-        + '<nav class="up" aria-label="Sections"><a href="#release">Release</a><a href="#artists">Artists</a><a href="#contact">Contact</a></nav></header>'
+        + '<nav class="up" aria-label="Sections"><a href="#release">Release</a><a href="#catalog">Catalog</a><a href="#artists">Artists</a><a href="#contact">Contact</a></nav></header>'
         + '<main>'
         + '<section class="hero" aria-labelledby="name"><div class="hero-in">'
         + f'<div class="stage rise" aria-hidden="true"><div class="disc">{circle(C["orange"], ref=True)}</div><div class="sheen"></div><div class="arm"></div></div>'
@@ -267,16 +289,15 @@ def index():
         + '</div>'
         + '<div class="ticker" aria-hidden="true"><div>' + TICK * 2 + '</div></div></section>'
         + f'<section class="sec release" id="release" aria-labelledby="release-title">'
-        + f'<div class="sleeve"><div class="rec" aria-hidden="true">{circle(C["orange"], ref=True)}</div><picture>'
-        + f'<source type="image/webp" srcset="{COVER}-640.webp 640w, {COVER}-1200.webp 1200w" sizes="(min-width:60rem) 42rem, calc(100vw - 2rem)">'
-        + f'<img class="cover" src="{COVER}-640.jpg" width="640" height="640" alt="{e(R["image"]["alt"])}" loading="lazy" decoding="async">'
-        + '</picture></div><div>'
+        + f'<div class="sleeve"><div class="rec" aria-hidden="true">{circle(C["orange"], ref=True)}</div>'
+        + picture(R, "cover", "(min-width:60rem) 42rem, calc(100vw - 2rem)") + '</div><div>'
         + '<p class="kick up">Latest release</p>'
         + f'<h2 class="title" id="release-title">{t}</h2>'
         + f'<p class="by"><a href="{e(main_artist["url"])}">{e(R["artist"])}</a></p>'
-        + f'<p class="meta up">{e(R["type"])} · <time datetime="{R["date"]}">{date.day} {date.strftime("%B %Y")}</time> · {e(L["name"])}</p>'
+        + f'<p class="meta up">{e(R["type"])} · <time datetime="{R["date"]}">{fmt_date(R["date"])}</time> · {e(L["name"])}</p>'
         + f'<ul class="listen" aria-label="Listen to {t}">{links}</ul>'
         + '</div></section>'
+        + f'<section class="sec" id="catalog" aria-labelledby="catalog-h"><p class="kick up">Discography</p><h2 id="catalog-h">Catalog</h2><ul class="cat">{catalog}</ul></section>'
         + f'<section class="sec" id="artists" aria-labelledby="artists-h"><p class="kick up">Roster</p><h2 id="artists-h">Artists</h2><ul class="roster">{roster}</ul></section>'
         + f'<section class="sec about" aria-labelledby="about-h"><div><p class="kick up">The label</p><h2 id="about-h" class="sr">About {e(L["name"])}</h2><p>{e(L["intro"])}</p></div>'
         + f'<div class="seal" aria-hidden="true">{circle(C["choco"], ref=True)}</div></section>'
