@@ -48,7 +48,8 @@
       "alt": "Illustration of a mallard duck in a straw hat, holding a flower in its beak, standing in a puddle between cattails.",
       "sameAs": [
         "https://musicbrainz.org/artist/3ea4e8a3-4b60-4fb3-a5ea-03ee4aca0e32",
-        "https://www.discogs.com/artist/11357834-Liid"
+        "https://www.discogs.com/artist/11357834-Liid",
+        "https://www.wikidata.org/wiki/Q141470221"
       ]
     },
     {
@@ -60,7 +61,10 @@
       "image": "/img/lead-major.webp",
       "video": "/img/lead-major.mp4",
       "position": "50% 50%",
-      "alt": "The Lead Major emblem glowing in blue, red and green light on a black background."
+      "alt": "The Lead Major emblem glowing in blue, red and green light on a black background.",
+      "sameAs": [
+        "https://www.wikidata.org/wiki/Q141470222"
+      ]
     }
   ],
   "releases": [
@@ -103,7 +107,8 @@
       ],
       "sameAs": [
         "https://musicbrainz.org/release/73ef0237-413a-4702-8766-af1a55b1eb4f",
-        "https://www.discogs.com/release/38440773"
+        "https://www.discogs.com/release/38440773",
+        "https://www.wikidata.org/wiki/Q141470223"
       ]
     },
     {
@@ -157,7 +162,8 @@
       ],
       "sameAs": [
         "https://musicbrainz.org/release/b9dad58c-54d7-44dd-9c1f-268946c80f7d",
-        "https://www.discogs.com/release/38440791"
+        "https://www.discogs.com/release/38440791",
+        "https://www.wikidata.org/wiki/Q141470224"
       ]
     },
     {
@@ -199,7 +205,8 @@
       ],
       "sameAs": [
         "https://musicbrainz.org/release/98a3485d-1b79-40fe-940e-9be3f9f02e48",
-        "https://www.discogs.com/release/38440803"
+        "https://www.discogs.com/release/38440803",
+        "https://www.wikidata.org/wiki/Q141470225"
       ]
     }
   ],
