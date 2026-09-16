@@ -202,5 +202,35 @@
         "https://www.discogs.com/release/38440803"
       ]
     }
+  ],
+  "news": [
+    {
+      "date": "2026-03-30",
+      "outlet": "Right Chord Music",
+      "title": "Djouher Proclaims ‘I Killed Her’",
+      "url": "https://www.rightchordmusic.co.uk/djouher-i-killed-her/",
+      "artist": "Djouher",
+      "release": "i-killed-her",
+      "summary": "The UK music blog introduces “I Killed Her”, the single that marks Djouher’s return in 2026."
+    },
+    {
+      "date": "2026-03-27",
+      "outlet": "Indie Boulevard",
+      "author": "Gabriel Rivera",
+      "title": "DJOUHER, “I Killed Her”: The Title Promised a Thriller. The Music Delivered a Sunrise.",
+      "url": "https://indieboulevard.com/2026/03/27/djouher-i-killed-her-the-title-promised-a-thriller-the-music-delivered-a-sunrise/",
+      "artist": "Djouher",
+      "release": "i-killed-her",
+      "summary": "A review of “I Killed Her”, which pairs a dark title with warm, luminous indie pop and subtle Eastern touches."
+    },
+    {
+      "date": "2022-08-13",
+      "outlet": "SceneNoise",
+      "author": "Badreya Electroneya",
+      "title": "Algerian Singer Djouher Pours Her Heart Out In Debut EP ‘Kingdom’",
+      "url": "https://scenenoise.com/New-Music/Algerian-Singer-Djouher-Pours-Her-Heart-Out-In-Debut-EP-Kingdo",
+      "artist": "Djouher",
+      "summary": "A feature on Kingdom, Djouher’s debut EP, and its themes of personal growth and vulnerability."
+    }
   ]
 }
