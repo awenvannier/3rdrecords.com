@@ -68,12 +68,14 @@ def svg_path(name):
 MARK, RECORDS, CMARK = svg_path("mark"), svg_path("records"), svg_path("circle-mark")
 
 
-def lockup(cls, mark_fill, word_fill, label=None):
-    """3RD mark + 'records' wordmark side by side (viewBox 3344x1028)."""
+def lockup(cls, mark_fill, word_fill, label=None, link=None):
+    """3RD mark + 'records' wordmark side by side (viewBox 3344x1028). link: hidden easter-egg href on the duck."""
     a = f' role="img" aria-label="{e(label)}"' if label else ' aria-hidden="true"'
     return (f'<svg class="{cls}" viewBox="0 0 3344 1028" xmlns="http://www.w3.org/2000/svg"{a} focusable="false">'
-            f'<g class="duck"><path fill="{mark_fill}" transform="{MARK[1]}" d="{MARK[2]}"/></g>'
-            f'<g transform="translate(1660 0)"><path fill="{word_fill}" transform="{RECORDS[1]}" d="{RECORDS[2]}"/></g></svg>')
+            + (f'<a href="{link}" tabindex="-1" class="egg">' if link else '')
+            + f'<g class="duck"><path fill="{mark_fill}" transform="{MARK[1]}" d="{MARK[2]}"/></g>'
+            + ('</a>' if link else '')
+            + f'<g transform="translate(1660 0)"><path fill="{word_fill}" transform="{RECORDS[1]}" d="{RECORDS[2]}"/></g></svg>')
 
 
 def circle(fill, mark="#FEFEFE", size=None, ref=False):
@@ -124,7 +126,7 @@ ul{list-style:none;margin:0;padding:0}
 .arm::after{content:"";position:absolute;right:calc(10% + .45rem);top:.55rem;width:.22rem;height:92%;background:linear-gradient(var(--grey),#cfcfcf);border-radius:.2rem;box-shadow:-.15rem 0 0 rgba(0,0,0,.25)}
 .hero h1{width:min(100%,46rem)}
 .lockup{width:100%;overflow:visible}
-.duck{transform-box:fill-box;transform-origin:50% 90%;animation:bob 2.4s ease-in-out infinite}
+.duck{transform-box:fill-box;transform-origin:50% 90%;animation:bob 2.4s ease-in-out infinite}.egg{cursor:pointer}.egg:hover .duck{animation-duration:.5s}
 .rise{animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
 .rise.d2{animation-delay:.12s}.rise.d3{animation-delay:.24s}
 .tag{margin:0;color:var(--grey)}
@@ -315,7 +317,7 @@ def index():
         + '<main>'
         + '<section class="hero" aria-labelledby="name"><div class="hero-in">'
         + f'<div class="stage rise" aria-hidden="true"><div class="disc">{circle(C["orange"], ref=True)}</div><div class="sheen"></div><div class="arm"></div></div>'
-        + f'<h1 id="name" class="rise d2">{lockup("lockup", C["orange"], C["white"])}<span class="sr">{e(L["name"])}</span></h1>'
+        + f'<h1 id="name" class="rise d2">{lockup("lockup", C["orange"], C["white"], link="/duck/")}<span class="sr">{e(L["name"])}</span></h1>'
         + f'<p class="tag up rise d3">Record label · Created by <img class="lm" src="{e(CB["logo"])}" width="24" height="24" alt=""> {e(CB["name"])}</p>'
         + f'<p class="cta rise d3"><span class="up or">New {e(R["type"].lower())} · {e(R["artist"])}</span><a class="btn up" href="#release">Listen to {t}</a></p>'
         + '</div>'
@@ -521,7 +523,7 @@ def main():
         extra = []
     try:
         import duck
-        duck.build(DIST)
+        duck.build(DIST, S.get("duck_api", ""))
     except Exception as err:
         print("::warning::duck page failed:", err)
     if extra:

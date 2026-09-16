@@ -25,7 +25,7 @@ a,button{color:inherit;font:inherit}
 .hud a{color:var(--grey);text-decoration:none;white-space:nowrap}@media (max-width:480px){.hud .up{letter-spacing:.1em}.stats{gap:10px}}.hud a:hover{color:var(--orange)}
 .stats{display:flex;gap:clamp(14px,3vw,28px);align-items:baseline}
 .stats b{font:400 clamp(26px,4vw,40px)/1 Avigea,Georgia,serif;color:var(--orange);margin-left:6px}
-.center{position:fixed;inset:0;display:grid;place-content:center;justify-items:center;gap:14px;text-align:center;padding:24px;z-index:3;transition:opacity .4s}
+.center{position:fixed;inset:0;display:grid;place-items:center;overflow-y:auto;text-align:center;padding:72px 24px 32px;z-index:3;transition:opacity .4s}.panel{display:grid;justify-items:center;gap:14px;max-width:100%}[hidden]{display:none!important}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.save{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.save input{height:48px;margin-top:8px;width:min(62vw,230px);padding:0 20px;border-radius:999px;border:1px solid #6b6763;background:rgba(0,0,0,.25);color:var(--white);font:inherit;font-size:14px;letter-spacing:.14em;text-transform:uppercase;user-select:text;-webkit-user-select:text}.save input::placeholder{color:var(--grey)}.save input:focus{border-color:var(--orange)}.btn.solid{background:var(--orange);border-color:var(--orange);color:var(--ink)}.btn.solid:hover,.btn.solid:focus-visible{background:var(--white);border-color:var(--white)}.btn:disabled{opacity:.5;cursor:wait}#lbh{font-weight:500;color:var(--grey)}#lb{display:grid;justify-items:center;gap:6px;margin-top:18px}.board{list-style:none;width:min(86vw,340px);counter-reset:r}.board li{display:flex;align-items:baseline;gap:14px;padding:8px 2px;border-bottom:1px solid rgba(254,254,254,.09);counter-increment:r;animation:row .4s both}.board li::before{content:counter(r,decimal-leading-zero);color:var(--grey);font-size:11px;letter-spacing:.1em;min-width:2ch}.board .n{flex:1;min-width:0;text-align:left;text-transform:uppercase;letter-spacing:.14em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.board .s{font:400 22px/1 Avigea,Georgia,serif;color:var(--orange)}.board li:first-child .s{font-size:30px}.board li.me{background:rgba(246,161,14,.12)}.board li.me .n{color:var(--orange)}.hint{color:var(--grey);font-size:11px;min-height:1em}@keyframes row{from{opacity:0;transform:translateY(6px)}}
 .center.hide{opacity:0;pointer-events:none}
 h1{font:400 clamp(64px,14vw,170px)/.9 Avigea,Georgia,serif;color:var(--orange)}
 .center p{color:#d7d2cc;max-width:32ch;font-size:15px}.center p.up{max-width:none;color:var(--grey)}
@@ -45,7 +45,7 @@ h1{font:400 clamp(64px,14vw,170px)/.9 Avigea,Georgia,serif;color:var(--orange)}
 .feather{position:fixed;z-index:4;width:8px;height:8px;border-radius:50% 0;background:var(--orange);pointer-events:none;animation:fly .7s ease-out forwards}
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(220deg);opacity:0}}
 .time.low b{color:#ff5a3c}
-@media (prefers-reduced-motion:reduce){.duck.q svg,.pop,.feather{animation:none}}
+@media (prefers-reduced-motion:reduce){.duck.q svg,.pop,.feather,.board li{animation:none}}
 """.strip()
 CSS = "".join(l.strip() for l in CSS.splitlines())
 
@@ -54,10 +54,14 @@ JS = r"""
 const $ = s => document.querySelector(s);
 const layer = $('#layer'), menu = $('#menu'), scoreEl = $('#score'), timeEl = $('#time'), bestEl = $('#best');
 const SVG = $('#duck-tpl').innerHTML;
-const ROUND = 30, MAX = 22;
+const ROUND = 30, MAX = 22, API = '__API__';
+const form = $('#save'), nameIn = $('#name'), board = $('#board'), lb = $('#lb'), note = $('#lbnote');
+const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (_) { return d; } };
+const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} };
+let token = null, pending = null;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let ducks = [], raf = 0, last = 0, score = 0, left = ROUND, playing = false, tick = 0, spawnT = 0, ac = null;
-let best = 0; try { best = +localStorage.getItem('3rd-duck-best') || 0; } catch (_) {}
+let best = +load('3rd-duck-best', 0) || 0;
 bestEl.textContent = best;
 
 function quack(pitch){
@@ -148,11 +152,61 @@ function frame(now){
   }
   raf = requestAnimationFrame(frame);
 }
+async function api(params, body){
+  if (!API) throw new Error('off');
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 8000);
+  try {
+    const opt = { signal: ctl.signal };
+    if (body) Object.assign(opt, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+    const j = await (await fetch(API + '?' + new URLSearchParams(params), opt)).json();
+    if (!j.ok) throw new Error(j.err || 'api');
+    return j;
+  } finally { clearTimeout(tm); }
+}
+const clean = n => n.normalize('NFKC').replace(/[^\p{L}\p{N} ._-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 12);
+function render(list, me){
+  board.replaceChildren(...list.slice(0, 10).map((x, i) => {
+    const li = document.createElement('li'), n = document.createElement('span'), v = document.createElement('span');
+    if (me && x.id === me) li.className = 'me';
+    li.style.animationDelay = i * 40 + 'ms';
+    n.className = 'n'; n.textContent = x.name; v.className = 's'; v.textContent = x.score;
+    li.append(n, v); return li;
+  }));
+  lb.hidden = !list.length;
+}
+const localTop = () => load('3rd-duck-board', []);
+async function refresh(me, fallback){
+  if (API) {
+    try { const j = fallback || await api({ a: 'top' }); render(j.top, me); note.textContent = ''; return; }
+    catch (_) { note.textContent = 'Global scoreboard offline, showing this device.'; }
+  } else note.textContent = 'Scores are saved on this device.';
+  render(localTop(), me);
+}
+form.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const name = clean(nameIn.value);
+  if (!name) { nameIn.value = ''; nameIn.focus(); return; }
+  if (pending == null) return;
+  const sc = pending; pending = null;
+  store('3rd-duck-name', name);
+  const entry = { id: Math.random().toString(36).slice(2, 10), name, score: sc };
+  store('3rd-duck-board', localTop().concat(entry).sort((a, b) => b.score - a.score).slice(0, 50));
+  form.querySelector('button').disabled = true;
+  let res = null, me = entry.id;
+  if (API && token) { try { res = await api({ a: 'add' }, { t: token, name, score: sc }); me = res.id; } catch (_) {} }
+  token = null;
+  form.querySelector('button').disabled = false;
+  form.hidden = true;
+  $('#msg').textContent = `Saved as ${name}. ${sc} point${sc === 1 ? '' : 's'}.`;
+  await refresh(me, res);
+  $('#go').focus();
+});
 function clear(){ ducks.forEach(d => d.el.remove()); ducks = []; }
 function start(){
   clear(); score = 0; left = ROUND; playing = true; spawnT = 0;
   scoreEl.textContent = 0; timeEl.textContent = left; timeEl.parentNode.classList.remove('low');
-  menu.classList.add('hide');
+  menu.classList.add('hide'); form.hidden = true; pending = null; token = null;
+  if (API) api({ a: 'start' }).then(j => { token = j.t; }).catch(() => {});
   for (let i = 0; i < 3; i++) spawn();
   clearInterval(tick);
   tick = setInterval(() => {
@@ -164,15 +218,25 @@ function start(){
 function end(){
   clearInterval(tick); playing = false; clear();
   const rec = score > best;
-  if (rec) { best = score; bestEl.textContent = best; try { localStorage.setItem('3rd-duck-best', best); } catch (_) {} }
+  if (rec) { best = score; bestEl.textContent = best; store('3rd-duck-best', best); }
   $('#title').textContent = rec ? 'New record!' : 'Quack.';
   $('#msg').textContent = `You caught ${score} duck${score === 1 ? '' : 's'} in ${ROUND} seconds.` + (rec ? '' : ` Best: ${best}.`);
   $('#go').textContent = 'Play again';
   menu.classList.remove('hide');
-  $('#go').focus();
-  spawn(innerWidth / 2 - 50, innerHeight / 2 - 160);
+  menu.scrollTop = 0;
+  if (score > 0) {
+    pending = score; form.hidden = false;
+    nameIn.value = load('3rd-duck-name', '');
+    $('#msg').textContent += ' Add your name to the scoreboard.';
+    nameIn.focus({ preventScroll: true });
+  } else {
+    $('#go').focus();
+    spawn(innerWidth / 2 - 50, innerHeight / 2 - 160);
+  }
+  refresh();
 }
 $('#go').addEventListener('click', start);
+refresh();
 spawn(innerWidth / 2 - 50, innerHeight / 2 - 170);
 if (!reduce) raf = requestAnimationFrame(frame);
 else { playing = false; }
@@ -180,10 +244,12 @@ else { playing = false; }
 """.strip()
 
 
-def page(font_ok=True):
+def page(api=""):
+    js = JS.replace("__API__", api)
     sh = lambda s: base64.b64encode(hashlib.sha256(s.encode()).digest()).decode()
     csp = (f"default-src 'none'; base-uri 'none'; form-action 'none'; img-src 'self'; font-src 'self'; "
-           f"style-src 'sha256-{sh(CSS)}'; script-src 'sha256-{sh(JS)}'")
+           f"style-src 'sha256-{sh(CSS)}'; script-src 'sha256-{sh(js)}'"
+           + ("; connect-src https://script.google.com https://script.googleusercontent.com" if api else ""))
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Quack · 3rd Records</title>
@@ -196,15 +262,17 @@ def page(font_ok=True):
 <header class="hud"><a class="up" href="/">← 3rd Records</a>
 <div class="stats up"><span>Score<b id="score">0</b></span><span class="time">Time<b id="time">30</b></span><span>Best<b id="best">0</b></span></div></header>
 <div class="layer" id="layer"></div>
-<main class="center" id="menu"><p class="up">3rd Records · secret level</p><h1 id="title">Quack.</h1>
-<p id="msg">You found the duck. Catch as many as you can in 30 seconds. Golden ones are worth 5.</p>
-<button class="btn" id="go" type="button">Play</button></main>
-<script>{JS}</script>
+<main class="center" id="menu"><div class="panel"><p class="up">3rd Records · secret level</p><h1 id="title">Quack.</h1>
+<p id="msg" aria-live="polite">You found the duck. Catch as many as you can in 30 seconds. Golden ones are worth 5.</p>
+<form class="save" id="save" hidden><label class="sr" for="name">Your name</label><input id="name" name="name" maxlength="12" autocomplete="nickname" autocapitalize="characters" spellcheck="false" placeholder="Your name" required><button class="btn solid" type="submit">Save score</button></form>
+<button class="btn" id="go" type="button">Play</button>
+<section id="lb" hidden aria-labelledby="lbh"><h2 class="up" id="lbh">Scoreboard</h2><ol class="board" id="board"></ol><p class="hint" id="lbnote"></p></section></div></main>
+<script>{js}</script>
 </body></html>
 """
 
 
-def build(DIST):
+def build(DIST, api=""):
     out = DIST / "duck"
     out.mkdir(parents=True, exist_ok=True)
-    (out / "index.html").write_text(page(), encoding="utf-8")
+    (out / "index.html").write_text(page(api), encoding="utf-8")
