@@ -215,7 +215,8 @@ img,svg,video{display:block;max-width:100%}
 .orb::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 40%,#1b2150,#0a0b12 70%);box-shadow:0 0 0 1px rgba(255,255,255,.07),0 30px 120px rgba(91,116,255,.25),inset -30px -20px 80px rgba(255,66,98,.18),inset 30px 20px 80px rgba(57,224,164,.12)}
 .orb::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.3),transparent 30%);box-shadow:inset 0 0 40px rgba(255,255,255,.14)}
 .orb-clip{position:absolute;inset:0;border-radius:50%;overflow:hidden}
-.orb-clip img{position:absolute;left:50%;bottom:-8%;width:74%;height:auto;translate:-50% 0;filter:drop-shadow(0 20px 30px rgba(0,0,0,.5))}
+.orb-clip img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%}
+.orb-clip::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 60px rgba(7,7,10,.55),inset -24px -18px 70px rgba(255,66,98,.16),inset 24px 18px 70px rgba(91,116,255,.16)}
 .orb .ring{position:absolute;inset:-7%;border-radius:50%;border:1px dashed rgba(238,240,245,.16);animation:spin 40s linear infinite}
 .orb .ring svg{position:absolute;width:44px;height:44px;left:50%;top:-22px;translate:-50% 0;filter:drop-shadow(0 0 10px rgba(91,116,255,.8))}
 @keyframes float{50%{transform:translateY(-12px)}}
@@ -252,6 +253,7 @@ img,svg,video{display:block;max-width:100%}
 .slide .info>*{transition:opacity .6s var(--ease),transform .6s var(--ease)}
 .slide.cur .info>*:nth-child(2){transition-delay:.08s}.slide.cur .info>*:nth-child(3){transition-delay:.14s}.slide.cur .info>*:nth-child(4){transition-delay:.2s}.slide.cur .info>*:nth-child(5){transition-delay:.26s}.slide.cur .info>*:nth-child(6){transition-delay:.32s}
 .media{position:relative;border-radius:14px;overflow:hidden;background:var(--surface);box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.06);aspect-ratio:16/9}
+.media.r43{aspect-ratio:4/3}
 .media.sq{aspect-ratio:1;width:min(100%,560px);justify-self:center}
 .media img,.media iframe{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border:0;transition:transform 1.2s var(--ease)}
 .slide:not(.cur) .media img{transform:scale(1.08)}
@@ -576,7 +578,7 @@ def page(P, I, fonts, domain, ROOT):
     for k, w in enumerate(W):
         im = I[w["image"]]
         wide = w.get("wide")
-        cls = "media" + ("" if wide else " sq")
+        cls = "media" + ("" if wide else " sq") + (" " + w["ratio"] if w.get("ratio") else "")
         img = img_tag(I, w["image"], "(min-width:860px) 56vw, 100vw", "img-contain" if w["image"] == "label" else "")
         play = (f'<button class="playbtn" type="button" data-yt="{e(w["video"])}" aria-label="Play the video: {e(w["title"])}">'
                 f'<span>{icon("i-play")}</span></button>') if w.get("video") else ""
@@ -619,7 +621,6 @@ def page(P, I, fonts, domain, ROOT):
     ticker_items = [f"{t}" for t in ["Composer", "Sound engineer", "Mix & master", "Sound design", "Audio post"] + P["credits"]]
     ticker = "".join(f'<span class="mono up">{e(t)}</span>' for t in ticker_items) * 2
     tags = "".join(f'<span class="chip">{e(t)}</span>' for t in P["tags"])
-    tel = "tel:" + re.sub(r"[^+\d]", "", P["phone"])
 
     # ---------- structured data ----------
     same = [s["url"] for s in P["socials"]] + ["https://www.wikidata.org/wiki/Q141470222"]
@@ -792,7 +793,7 @@ def page(P, I, fonts, domain, ROOT):
     <p class="label mono up">Let’s collaborate</p>
     <h2 class="h2" id="contact-h">Tell me about<br>your project.</h2>
     <p class="mail"><a href="mailto:{e(P["email"])}">{e(P["email"])}</a><button class="btn btn-s" type="button" id="copy" data-copy="{e(P["email"])}">Copy</button></p>
-    <p class="cinfo mono"><a href="{tel}">{e(P["phone"])}</a><span>{e(P["location"])}</span></p>
+    <p class="cinfo mono"><span>{e(P["location"])}</span></p>
     <div class="socials">{socials}</div>
   </div></div>
 </section>

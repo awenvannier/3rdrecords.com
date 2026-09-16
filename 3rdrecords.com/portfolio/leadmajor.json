@@ -5,7 +5,7 @@
   "title": "Lead Major – Composer & Sound Engineer | Awen Vannier",
   "description": "Portfolio of Lead Major (Awen Vannier), French composer and sound engineer: composition, mix & master, sound design and audio post-production for artists, films and labels.",
   "lede": "Composer & sound engineer.",
-  "sub": "I breathe life into music and sound: composition, production, mix & master, sound design and audio post-production for artists, films and labels.",
+  "sub": "I bring your musical and sonic ideas to life: composition, production, mix & master, sound design and audio post-production for artists, films and labels.",
   "tags": [
     "composition",
     "mix & master",
@@ -13,13 +13,12 @@
     "audio post"
   ],
   "email": "leadmajor.prod@gmail.com",
-  "phone": "+33 6 76 92 26 87",
   "location": "France & worldwide",
   "images": {
     "portrait": {
       "src": "https://leadmajor.my.canva.site/_assets/media/2a43957200f9549aff1c7b7868847399.png",
-      "w": 700,
-      "alt": "Awen Vannier, aka Lead Major, in a white t-shirt, looking up at the camera."
+      "w": 1000,
+      "alt": "Portrait of Awen Vannier, aka Lead Major, smiling, in a cream t-shirt."
     },
     "braquass": {
       "src": "https://leadmajor.my.canva.site/_assets/media/ebe6857981dfdf34d342ad900952338a.png",
@@ -39,7 +38,7 @@
     "kingdom": {
       "src": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/08/de/e2/08dee23e-8164-2133-e9bd-133ad4fff055/09d4a0ad-666b-4382-97e2-b8ee105aff6b.jpg/1000x1000bb.jpg",
       "w": 1000,
-      "alt": "Cover of Kingdom, the debut EP by Djouher."
+      "alt": "Djouher in a long burgundy satin dress, seated on a grand marble staircase."
     },
     "lbb": {
       "src": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/aa/e4/f0/aae4f00c-6c25-4798-c5c9-75ab1a491fcf/artwork.jpg/1000x1000bb.jpg",
@@ -110,7 +109,8 @@
           "name": "Watch",
           "url": "https://www.youtube.com/watch?v=9XLkOtiCEBI"
         }
-      ]
+      ],
+      "ratio": "r43"
     },
     {
       "slug": "kingdom",
