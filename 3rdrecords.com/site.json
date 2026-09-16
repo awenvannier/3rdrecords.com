@@ -8,7 +8,8 @@
     "sameAs": [
       "https://musicbrainz.org/label/e4eba684-08be-4ec2-980d-0bf7a8a4446e",
       "https://www.wikidata.org/wiki/Q141470110",
-      "https://www.discogs.com/label/4708086-3rd-Records-3"
+      "https://www.discogs.com/label/4708086-3rd-Records-3",
+      "https://www.instagram.com/3rdrecords/"
     ],
     "createdBy": {
       "name": "Lead Major",
@@ -121,12 +122,12 @@
       "upc": "7316482048458",
       "image": {
         "jpg": {
-          "640": "https://djouher.com/img/i-killed-her-640.jpg",
-          "1200": "https://djouher.com/img/i-killed-her-1200.jpg"
+          "640": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/67/3f/e5/673fe50f-cdd4-919e-659b-43344641d167/79d5df72-3f3d-435d-addc-9eb7db5258b7.jpg/640x640bb.jpg",
+          "1200": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/67/3f/e5/673fe50f-cdd4-919e-659b-43344641d167/79d5df72-3f3d-435d-addc-9eb7db5258b7.jpg/1200x1200bb.jpg"
         },
         "webp": {
-          "640": "https://djouher.com/img/i-killed-her-640.webp",
-          "1200": "https://djouher.com/img/i-killed-her-1200.webp"
+          "640": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/67/3f/e5/673fe50f-cdd4-919e-659b-43344641d167/79d5df72-3f3d-435d-addc-9eb7db5258b7.jpg/640x640bb.webp",
+          "1200": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/67/3f/e5/673fe50f-cdd4-919e-659b-43344641d167/79d5df72-3f3d-435d-addc-9eb7db5258b7.jpg/1200x1200bb.webp"
         },
         "alt": "Cover art for I Killed Her by Djouher: the singer, dressed in white, crouches beneath a glowing full moon on a deep blue stage."
       },

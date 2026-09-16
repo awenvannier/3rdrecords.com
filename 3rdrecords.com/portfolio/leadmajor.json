@@ -1,0 +1,586 @@
+{
+  "path": "/portfolio/leadmajor/",
+  "name": "Lead Major",
+  "person": "Awen Vannier",
+  "title": "Lead Major – Composer & Sound Engineer | Awen Vannier",
+  "description": "Portfolio of Lead Major (Awen Vannier), French composer and sound engineer: composition, mix & master, sound design and audio post-production for artists, films and labels.",
+  "lede": "Composer & sound engineer.",
+  "sub": "I breathe life into music and sound: composition, production, mix & master, sound design and audio post-production for artists, films and labels.",
+  "tags": [
+    "composition",
+    "mix & master",
+    "sound design",
+    "audio post"
+  ],
+  "email": "leadmajor.prod@gmail.com",
+  "phone": "+33 6 76 92 26 87",
+  "location": "France & worldwide",
+  "images": {
+    "portrait": {
+      "src": "https://leadmajor.my.canva.site/_assets/media/2a43957200f9549aff1c7b7868847399.png",
+      "w": 700,
+      "alt": "Awen Vannier, aka Lead Major, in a white t-shirt, looking up at the camera."
+    },
+    "braquass": {
+      "src": "https://leadmajor.my.canva.site/_assets/media/ebe6857981dfdf34d342ad900952338a.png",
+      "w": 1200,
+      "alt": "Poster of the short film Braquass: two headlights glowing in the dark under the red title."
+    },
+    "ikh": {
+      "src": "https://i.ytimg.com/vi/vQgVZkjjlTA/maxresdefault.jpg",
+      "w": 1280,
+      "alt": "Still from the I Killed Her music video: Djouher in white under a full moon on a dark stage."
+    },
+    "showreel": {
+      "src": "https://i.ytimg.com/vi/4JVweQZP6W0/maxresdefault.jpg",
+      "w": 1280,
+      "alt": "Lead Major music and sound design showreel."
+    },
+    "kingdom": {
+      "src": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/08/de/e2/08dee23e-8164-2133-e9bd-133ad4fff055/09d4a0ad-666b-4382-97e2-b8ee105aff6b.jpg/1000x1000bb.jpg",
+      "w": 1000,
+      "alt": "Cover of Kingdom, the debut EP by Djouher."
+    },
+    "lbb": {
+      "src": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/aa/e4/f0/aae4f00c-6c25-4798-c5c9-75ab1a491fcf/artwork.jpg/1000x1000bb.jpg",
+      "w": 1000,
+      "alt": "Cover of Little Big Bird, the EP by Lead Major."
+    },
+    "liid": {
+      "local": "/img/liid-800.webp",
+      "alt": "liid. artwork: a mallard duck in a straw hat standing in a puddle."
+    },
+    "label": {
+      "local": "/og.png",
+      "alt": "3rd Records logo on a dark background."
+    },
+    "lastnight": {
+      "src": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/95/78/ab/9578ab69-f6ee-8e0a-a1cb-8ec4cb24606c/0745051297510.png/1000x1000bb.jpg",
+      "w": 1000,
+      "alt": "Cover of Last Night by goosetaf, Anbuu and Philanthrope featuring Lead Major."
+    }
+  },
+  "works": [
+    {
+      "slug": "i-killed-her",
+      "title": "I Killed Her",
+      "by": "Djouher",
+      "kind": "Single & music video",
+      "year": "2026",
+      "roles": [
+        "Composition",
+        "Mix",
+        "Master"
+      ],
+      "image": "ikh",
+      "wide": true,
+      "video": "vQgVZkjjlTA",
+      "text": "Our latest release together and the most representative piece of my recent work: a pop track with hip-hop and Latin influences, released with a music video. I composed, mixed and mastered the entire piece.",
+      "links": [
+        {
+          "name": "Watch",
+          "url": "https://www.youtube.com/watch?v=vQgVZkjjlTA"
+        },
+        {
+          "name": "Spotify",
+          "url": "https://open.spotify.com/album/1ITFYNsW5lqz9MgU9kOY9h"
+        },
+        {
+          "name": "Release page",
+          "url": "https://3rdrecords.com/releases/i-killed-her/"
+        }
+      ]
+    },
+    {
+      "slug": "braquass",
+      "title": "Braquass",
+      "by": "Thomas Corver & Marin Langlois",
+      "kind": "Short film · Nikon Film Festival",
+      "year": "2024",
+      "roles": [
+        "On-set sound",
+        "Audio post-production"
+      ],
+      "image": "braquass",
+      "wide": true,
+      "video": "9XLkOtiCEBI",
+      "text": "A comedic short film for the Nikon Film Festival 2024. I recorded the sound on set and handled the full audio post-production. Ranked 11th out of 2,772 in the public vote and selected in SensCritique’s Top 50 short films.",
+      "links": [
+        {
+          "name": "Watch",
+          "url": "https://www.youtube.com/watch?v=9XLkOtiCEBI"
+        }
+      ]
+    },
+    {
+      "slug": "kingdom",
+      "title": "Kingdom",
+      "by": "Djouher",
+      "kind": "EP",
+      "year": "2022",
+      "roles": [
+        "Production",
+        "Co-composition",
+        "Mix",
+        "Master"
+      ],
+      "image": "kingdom",
+      "text": "A pop EP with MENA and R&B influences, fully produced, co-composed, mixed and mastered by me. It gathers around ten collaborations with Djouher into one complete record.",
+      "links": [
+        {
+          "name": "Spotify",
+          "url": "https://open.spotify.com/album/0DcQg5HubaTSsobHuirf9f"
+        },
+        {
+          "name": "Apple Music",
+          "url": "https://music.apple.com/album/1743419755"
+        }
+      ]
+    },
+    {
+      "slug": "liid",
+      "title": "liid.",
+      "by": "Side project",
+      "kind": "Lofi · chillhop · bossa",
+      "year": "2021 → now",
+      "roles": [
+        "Composition",
+        "Production"
+      ],
+      "image": "liid",
+      "text": "My lofi side project, launched in 2021. Over 5 million streams since 2024, from lofi and chillhop to bossa and jazz, with releases alongside Lofi Girl and Chillhop Music.",
+      "links": [
+        {
+          "name": "Spotify",
+          "url": "https://open.spotify.com/artist/1pajE7rKmzVHq2S6dLcgvG"
+        },
+        {
+          "name": "Lofi Girl · Back to School",
+          "url": "https://music.apple.com/album/6790608807"
+        }
+      ]
+    },
+    {
+      "slug": "little-big-bird",
+      "title": "Little Big Bird",
+      "by": "Lead Major",
+      "kind": "EP · 7 tracks",
+      "year": "2020",
+      "roles": [
+        "Direction",
+        "Composition",
+        "Mix",
+        "Master"
+      ],
+      "image": "lbb",
+      "text": "My first fully self-directed EP, from the initial concept to the final release. Mostly composed by me, it features eight artists and blends hip-hop, jazz and pop into one cohesive project.",
+      "links": [
+        {
+          "name": "SoundCloud",
+          "url": "https://on.soundcloud.com/r0yHsAMeVNaRtgemER"
+        },
+        {
+          "name": "Apple Music",
+          "url": "https://music.apple.com/album/1523882378"
+        }
+      ]
+    },
+    {
+      "slug": "3rd-records",
+      "title": "3rd Records",
+      "by": "Independent label",
+      "kind": "Label",
+      "year": "2025 → now",
+      "roles": [
+        "Founder",
+        "Label manager"
+      ],
+      "image": "label",
+      "wide": true,
+      "text": "The independent record label I created and run. It releases Djouher, liid. and my own music, with a catalog that grows release after release.",
+      "links": [
+        {
+          "name": "3rdrecords.com",
+          "url": "https://3rdrecords.com/"
+        }
+      ]
+    },
+    {
+      "slug": "chillhop",
+      "title": "Last Night",
+      "by": "goosetaf, Anbuu & Philanthrope feat. Lead Major",
+      "kind": "Single · Chillhop Music",
+      "year": "2020",
+      "roles": [
+        "Featured artist"
+      ],
+      "image": "lastnight",
+      "text": "A collaboration released on Chillhop Music and picked for Chillhop Essentials Summer 2020 and the Chillhop Yearmix 2020.",
+      "links": [
+        {
+          "name": "Apple Music",
+          "url": "https://music.apple.com/album/1518533385"
+        }
+      ]
+    }
+  ],
+  "showreel": {
+    "video": "4JVweQZP6W0",
+    "title": "Music & sound design showreel",
+    "image": "showreel"
+  },
+  "sync": {
+    "url": "https://soundcloud.com/lead-major/sets/sync/s-hQXpnbUqvT7",
+    "api": "https://api.soundcloud.com/playlists/2291130306?secret_token=s-hQXpnbUqvT7",
+    "tracks": [
+      "Jazz Noire",
+      "Industrial Electronic",
+      "Guitar Sad",
+      "Test n°3",
+      "Hyperpop",
+      "Electronic",
+      "Synthwave",
+      "Trap Experimentale",
+      "Wendys Orchestral",
+      "Electro Latino",
+      "Piano Electronic",
+      "Orchestral When You're Around",
+      "Electronic Trap",
+      "Main Theme – Maze Bounders",
+      "Maze Bounders – A Way Out"
+    ]
+  },
+  "discography": [
+    {
+      "group": "Lead Major",
+      "items": [
+        [
+          "2021",
+          "Waiting (feat. Djouher)",
+          "Lead Major & Katsu",
+          1556959913
+        ],
+        [
+          "2020",
+          "Last Time",
+          "Lead Major & Katsu",
+          1543948917
+        ],
+        [
+          "2020",
+          "Crépuscule",
+          "Otaam, Needraw & Lead Major",
+          1726217380
+        ],
+        [
+          "2020",
+          "Little Big Bird (EP)",
+          "Lead Major",
+          1523882378
+        ],
+        [
+          "2020",
+          "City Lights",
+          "Needraw & Lead Major",
+          1532284935
+        ],
+        [
+          "2020",
+          "Pocari",
+          "Lead Major",
+          1508444815
+        ],
+        [
+          "2020",
+          "Ascent III",
+          "Lead Major",
+          1494790694
+        ],
+        [
+          "2019",
+          "Hollow Weeb",
+          "Lead Major & Needraw",
+          1487262036
+        ],
+        [
+          "2019",
+          "Amethyst (feat. Needraw & Syazh)",
+          "Lead Major",
+          1480730019
+        ],
+        [
+          "2019",
+          "Monsoon (feat. Anbuu)",
+          "Lead Major",
+          1467666167
+        ],
+        [
+          "2019",
+          "Ascent II",
+          "Lead Major",
+          1462428742
+        ],
+        [
+          "2019",
+          "Odaiba",
+          "Lead Major",
+          1508464648
+        ],
+        [
+          "2019",
+          "Overcome",
+          "Lead Major",
+          1457334303
+        ],
+        [
+          "2019",
+          "Aftermath",
+          "Lead Major & d/rose",
+          1494790724
+        ],
+        [
+          "2019",
+          "Ascent",
+          "Lead Major",
+          1449228147
+        ],
+        [
+          "2018",
+          "Umbrella",
+          "Lead Major",
+          1449209506
+        ],
+        [
+          "2018",
+          "Gourmandise",
+          "Lead Major",
+          1449212106
+        ],
+        [
+          "2018",
+          "Moshi Moshi",
+          "Lead Major",
+          1449389575
+        ]
+      ]
+    },
+    {
+      "group": "With other artists",
+      "items": [
+        [
+          "2026",
+          "I Killed Her",
+          "Djouher",
+          1879817761
+        ],
+        [
+          "2026",
+          "For My Child (feat. Lead Major)",
+          "Keshh",
+          6809207342
+        ],
+        [
+          "2022",
+          "Kingdom (EP)",
+          "Djouher",
+          1743419755
+        ],
+        [
+          "2021",
+          "111",
+          "Djouher, Red Farrow & Lead Major",
+          1625572153
+        ],
+        [
+          "2021",
+          "Motion",
+          "Aoko & Lead Major",
+          1563640039
+        ],
+        [
+          "2021",
+          "Incendio (feat. Lead Major)",
+          "Opsylone",
+          1558464292
+        ],
+        [
+          "2020",
+          "Le Promeneur (feat. Needraw & Lead Major)",
+          "HoKø",
+          1525337593
+        ],
+        [
+          "2020",
+          "Anger (feat. Lead Major)",
+          "Djouher",
+          1743419348
+        ],
+        [
+          "2020",
+          "Last Night (feat. Lead Major)",
+          "goosetaf, Anbuu & Philanthrope",
+          1518533385
+        ]
+      ]
+    },
+    {
+      "group": "As liid.",
+      "items": [
+        [
+          "2026",
+          "Tabarka",
+          "nytø, liid. & Swink",
+          6793521121
+        ],
+        [
+          "2026",
+          "Moving Out",
+          "liid.",
+          6771727699
+        ],
+        [
+          "2026",
+          "Mahogany",
+          "Swink, nytø & liid.",
+          1854420205
+        ],
+        [
+          "2026",
+          "2070s (EP)",
+          "liid. & Anemøia",
+          1851576157
+        ],
+        [
+          "2025",
+          "Velvet",
+          "Swink, liid. & nytø",
+          1855894582
+        ],
+        [
+          "2025",
+          "High School Rooftop (Lofi Girl)",
+          "nytø, Swink & liid.",
+          6790608807
+        ],
+        [
+          "2025",
+          "Little Parrot",
+          "Swink & liid.",
+          1820856562
+        ],
+        [
+          "2025",
+          "Corail",
+          "liid. & nytø",
+          1814725384
+        ],
+        [
+          "2025",
+          "Serenade",
+          "Swink & liid.",
+          1811096124
+        ],
+        [
+          "2025",
+          "Quiet Fields",
+          "liid., Needraw & nytø",
+          1812017583
+        ],
+        [
+          "2025",
+          "Afterlife",
+          "liid. & Anemøia",
+          1792672134
+        ],
+        [
+          "2025",
+          "Chromatic",
+          "Anemøia & liid.",
+          1777711932
+        ],
+        [
+          "2025",
+          "Murmurs",
+          "nytø & liid.",
+          1772182889
+        ],
+        [
+          "2024",
+          "Echoes of You",
+          "nytø & liid.",
+          1783368538
+        ],
+        [
+          "2024",
+          "Winter Breeze",
+          "nytø, liid. & uub.",
+          1780644911
+        ],
+        [
+          "2021",
+          "Withholding",
+          "Anbuu, goosetaf & liid.",
+          1567217400
+        ]
+      ]
+    }
+  ],
+  "about": "Composer and sound engineer, I’m all about breathing life into the music and audio I work on. I bring my experience and personal touch to make sure every project feels cohesive and reaches its full artistic potential. Professionally active since 2017, graduated in 2021 with a Bachelor-level degree in sound techniques (TESTS, ESRA).",
+  "facts": [
+    [
+      "2017",
+      "active since"
+    ],
+    [
+      "5M+",
+      "streams as liid."
+    ],
+    [
+      "11th / 2,772",
+      "Braquass, public vote"
+    ],
+    [
+      "TESTS",
+      "ESRA, 2021"
+    ]
+  ],
+  "credits": [
+    "Djouher",
+    "Lofi Girl",
+    "Chillhop Music",
+    "Nikon Film Festival",
+    "3rd Records",
+    "Anbuu",
+    "Needraw",
+    "Katsu",
+    "Swink",
+    "nytø"
+  ],
+  "socials": [
+    {
+      "name": "Instagram",
+      "url": "https://www.instagram.com/lead.major/"
+    },
+    {
+      "name": "SoundCloud",
+      "url": "https://soundcloud.com/lead-major"
+    },
+    {
+      "name": "Spotify",
+      "url": "https://open.spotify.com/artist/0HePV5MBPoi502FIKslcBO"
+    },
+    {
+      "name": "LinkedIn",
+      "url": "https://www.linkedin.com/in/awen-vannier/"
+    },
+    {
+      "name": "Linktree",
+      "url": "https://linktr.ee/awen.vannier"
+    }
+  ],
+  "fonts": {
+    "display": "https://cdn.jsdelivr.net/npm/@fontsource-variable/bricolage-grotesque@5.3.0/files/bricolage-grotesque-latin-wght-normal.woff2",
+    "body": "https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/files/inter-latin-wght-normal.woff2",
+    "mono": "https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.3.0/files/jetbrains-mono-latin-400-normal.woff2"
+  }
+}

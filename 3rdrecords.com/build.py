@@ -276,7 +276,7 @@ def head(title, desc, canonical=True, robots="index,follow,max-image-preview:lar
 
 
 CENTER = ' class="c"'
-SAME_NAMES = {"musicbrainz": "MusicBrainz", "discogs": "Discogs", "wikidata": "Wikidata"}
+SAME_NAMES = {"instagram": "Instagram", "musicbrainz": "MusicBrainz", "discogs": "Discogs", "wikidata": "Wikidata"}
 
 
 def index():
@@ -511,6 +511,15 @@ def main():
     if (ROOT / "img").exists():
         shutil.copytree(ROOT / "img", DIST / "img")
     images()
+    try:
+        import portfolio.portfolio as pf
+        extra = pf.build(DIST, D)
+    except Exception as err:  # the label site must deploy even if the portfolio fails
+        print("portfolio build failed:", err)
+        extra = []
+    if extra:
+        sm = DIST / "sitemap.xml"
+        sm.write_text(sm.read_text().replace("</urlset>", "".join(f"  <url><loc>{D}{u}</loc><lastmod>{TODAY}</lastmod></url>\n" for u in extra) + "</urlset>"))
     for f in sorted(DIST.rglob("*")):
         if f.is_file():
             print(f"{f.stat().st_size:>8}  {f.relative_to(DIST)}")

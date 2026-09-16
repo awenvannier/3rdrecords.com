@@ -9,3 +9,10 @@ Site statique du label 3rd Records : une page, aucun script, aucun traceur.
 
 Pour une nouvelle sortie, modifie le bloc `release` de `site.json` puis pousse sur `main` : GitHub Actions reconstruit et redéploie le site.
 Les pochettes et photos d'artistes sont servies depuis le site de l'artiste (djouher.com/img/…).
+
+## Portfolio Lead Major (3rdrecords.com/portfolio/leadmajor/)
+
+- Contenu : `portfolio/leadmajor.json` (projets du carrousel, playlist SYNC, discographie, contact).
+- Générateur : `portfolio/portfolio.py`, appelé par `build.py`.
+- Les images distantes (Canva, Apple, YouTube) sont téléchargées et converties en WebP pendant le build. Pour remplacer une image, dépose un fichier `portfolio/img/<clé>.webp` (clés : portrait, braquass, ikh, showreel, kingdom, lbb, lastnight).
+- Polices : `portfolio/fonts/` (Bricolage Grotesque, Inter, JetBrains Mono, licence OFL).
