@@ -1,12 +1,14 @@
 /**
  * 3rd Records · duck game scoreboard (Google Apps Script web app, free).
- * Setup: Google Sheet → Extensions → Apps Script → paste this → Deploy → New deployment
- * → Web app · Execute as: Me · Who has access: Anyone → copy the /exec URL into site.json "duck_api".
+ * Standalone script (awen.vannier@gmail.com) writing to the Sheet "3rd Records Duck Scoreboard".
+ * Deploy → New deployment → Web app · Execute as: Me · Who has access: Anyone
+ * → copy the /exec URL into site.json "duck_api".
  */
+const SHEET_ID = '1W7vrxGeZCpaFcnand1v9-TfHapY1rlpF-Xjh5ZlTVRI';
 const ROUND = 30, MAX_SCORE = 400, KEEP = 500;
 
 function sheet_() {
-  const ss = SpreadsheetApp.getActive();
+  const ss = SpreadsheetApp.openById(SHEET_ID);
   return ss.getSheetByName('scores') || ss.insertSheet('scores');
 }
 function out_(o) {
