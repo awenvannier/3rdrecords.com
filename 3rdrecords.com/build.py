@@ -519,6 +519,11 @@ def main():
         traceback.print_exc()
         print("::warning::portfolio build failed:", err)
         extra = []
+    try:
+        import duck
+        duck.build(DIST)
+    except Exception as err:
+        print("::warning::duck page failed:", err)
     if extra:
         sm = DIST / "sitemap.xml"
         sm.write_text(sm.read_text().replace("</urlset>", "".join(f"  <url><loc>{D}{u}</loc><lastmod>{TODAY}</lastmod></url>\n" for u in extra) + "</urlset>"))
