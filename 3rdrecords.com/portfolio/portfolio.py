@@ -706,7 +706,11 @@ def letters(word, start):
 
 
 def shards_svg(ROOT):
-    d = json.loads((ROOT / "assets" / "lead-major.json").read_text())
+    try:
+        d = json.loads((HERE / "emblem.json").read_text())
+    except Exception as err:
+        print("  ! emblem pieces:", err)
+        return ""
     gs = "".join(f'<g><path transform="{d["transform"]}" d="{p["d"]}"/></g>' for p in d["pieces"])
     return f'<svg class="shards" viewBox="{d["viewBox"]}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">{gs}</svg>'
 

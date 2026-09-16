@@ -515,7 +515,9 @@ def main():
         import portfolio.portfolio as pf
         extra = pf.build(DIST, D)
     except Exception as err:  # the label site must deploy even if the portfolio fails
-        print("portfolio build failed:", err)
+        import traceback
+        traceback.print_exc()
+        print("::warning::portfolio build failed:", err)
         extra = []
     if extra:
         sm = DIST / "sitemap.xml"
