@@ -38,9 +38,21 @@ def picture(rel, cls, sizes, w=640):
 C = {"choco": "#512321", "orange": "#F6A10E", "ink": "#1D1D1B", "white": "#FEFEFE", "grey": "#9E9E9E"}
 
 CB = L.get("createdBy")
-TITLE = f"{L['name']} – Record label · {R['artist']}, {R['title']}"
-DESC = (f"{L['name']} is a record label created by {CB['name']}, with {', '.join(a['name'] for a in ARTISTS)}. "
-        f"Listen to the latest {R['type'].lower()}, “{R['title']}” by {R['artist']}, on {', '.join(l['name'] for l in R['links'][:3])}.")
+NAMES = ", ".join(a["name"] for a in ARTISTS[:-1]) + " and " + ARTISTS[-1]["name"]
+TITLE = f"{L['name']} | Independent Record Label"
+DESC = (f"{L['name']} is an independent record label created by {CB['name']}, with {NAMES}. "
+        f"Latest release: “{R['title']}” by {R['artist']}".rstrip(".") + ".")
+ROSTER_TXT = f"The roster includes {NAMES}, and the catalog counts {len(RELEASES)} releases so far."
+
+
+def rel_url(rel):
+    return f"/releases/{rel['slug']}/"
+
+
+def rel_artists(rel):
+    """Artists of a release that are on the roster (matched by name inside the credit)."""
+    credit = rel["artist"].lower()
+    return [a for a in ARTISTS if re.search(r"(^|[ ,&])" + re.escape(a["name"].lower()) + r"($|[ ,&])", credit)]
 
 
 def svg_path(name):
@@ -137,7 +149,11 @@ ul{list-style:none;margin:0;padding:0}
 .title{font-size:clamp(3.5rem,11vw,8rem)}
 .by{margin:.5rem 0 0;font:400 clamp(1.5rem,3.5vw,2.25rem)/1.1 var(--d)}
 .by a{text-decoration-thickness:1px;text-underline-offset:.2em}
-.by a:hover{color:var(--orange)}
+.by a:hover,.title a:hover{color:var(--orange)}
+.title a{text-decoration:none}
+.crumbs{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem;color:var(--grey)}.crumbs a{text-decoration:none}.crumbs a:hover{color:var(--orange)}.crumbs li+li::before{content:"/";margin-right:.5rem}
+.page{padding-top:7rem}
+.credit{margin:2.5rem 0 0;max-width:34em;color:#e9e6e1}
 .meta{margin:1rem 0 2.25rem;color:var(--grey)}
 .listen{border-top:1px solid var(--line)}
 .listen a{display:flex;justify-content:space-between;align-items:center;gap:1rem;min-height:4rem;border-bottom:1px solid var(--line);text-decoration:none}
@@ -181,6 +197,32 @@ CSP = (f"default-src 'none'; connect-src 'self'; img-src 'self' {' '.join(ORIGIN
        f"style-src 'sha256-{CSS_HASH}'; base-uri 'none'; form-action 'none'")
 
 
+def album_node(rel):
+    lid = f"{D}/#label"
+    arts = rel_artists(rel)
+    by = [{"@id": a["id"]} for a in arts] if arts else [{"@type": "MusicGroup", "name": rel["artist"]}]
+    url = f"{D}{rel_url(rel)}"
+    return {"@type": "MusicAlbum", "@id": f"{url}#album", "name": rel["title"], "url": url,
+            "albumReleaseType": f"https://schema.org/{rel['type']}Release",
+            "byArtist": by[0] if len(by) == 1 else by, "creditText": rel["artist"],
+            "datePublished": rel["date"], "image": rel["image"]["jpg"]["1200"],
+            "sameAs": [l["url"] for l in rel["links"] if "watch?v=" not in l["url"]] + rel.get("sameAs", []),
+            "numTracks": 1 if rel["type"] == "Single" else None, "genre": rel.get("genre"),
+            "albumRelease": {"@type": "MusicRelease", "name": rel["title"], "recordLabel": {"@id": lid},
+                             "gtin13": rel.get("upc"), "datePublished": rel["date"],
+                             "musicReleaseFormat": "https://schema.org/DigitalFormat"},
+            "track": {"@type": "MusicRecording", "name": rel["title"], "duration": rel.get("duration"),
+                      "byArtist": by[0] if len(by) == 1 else by}}
+
+
+def clean(o):
+    if isinstance(o, dict):
+        return {k: clean(v) for k, v in o.items() if v is not None}
+    if isinstance(o, list):
+        return [clean(v) for v in o]
+    return o
+
+
 def jsonld():
     lid = f"{D}/#label"
     graph = [
@@ -190,34 +232,21 @@ def jsonld():
          "inLanguage": "en", "isPartOf": {"@id": f"{D}/#website"}, "about": {"@id": lid},
          "primaryImageOfPage": f"{D}/og.png", "dateModified": TODAY},
         {"@type": "Organization", "@id": lid, "name": L["name"], "url": f"{D}/", "description": L["description"],
+         "alternateName": L.get("alternateName"), "disambiguatingDescription": L.get("disambiguatingDescription"),
          "logo": f"{D}/logo.png", "image": f"{D}/og.png", "email": L["contact"], "sameAs": L["sameAs"],
-         "founder": {"@id": CB["id"]} if CB else None},
+         "founder": {"@id": CB["id"]} if CB else None,
+         "subjectOf": [{"@id": f"{D}{rel_url(r)}#album"} for r in RELEASES]},
     ]
     for a in ARTISTS:
         graph.append({"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"],
-                      "sameAs": [a["url"]], "genre": a.get("genre"), "recordLabel": {"@id": lid}})
-    for rel in RELEASES:
-        art = artist_of(rel)
-        rid = f"{D}/#{rel['slug']}"
-        graph.append({"@type": "MusicAlbum", "@id": rid, "name": rel["title"],
-                      "albumReleaseType": f"https://schema.org/{rel['type']}Release",
-                      "byArtist": {"@id": art["id"]} if art else {"@type": "MusicGroup", "name": rel["artist"]},
-                      "datePublished": rel["date"], "image": rel["image"]["jpg"]["1200"], "url": f"{D}/#{rel['slug']}",
-                      "sameAs": [l["url"] for l in rel["links"] if "watch?v=" not in l["url"]],
-                      "numTracks": 1 if rel["type"] == "Single" else None,
-                      "albumRelease": {"@type": "MusicRelease", "name": rel["title"], "recordLabel": {"@id": lid},
-                                       "gtin13": rel.get("upc"), "datePublished": rel["date"]},
-                      "track": {"@type": "MusicRecording", "name": rel["title"], "duration": rel.get("duration")}})
+                      "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", []))), "genre": a.get("genre"), "recordLabel": {"@id": lid}})
+    graph += [album_node(rel) for rel in RELEASES]
 
-    def clean(o):
-        if isinstance(o, dict):
-            return {k: clean(v) for k, v in o.items() if v is not None}
-        return o
     return json.dumps({"@context": "https://schema.org", "@graph": [clean(g) for g in graph]},
                       ensure_ascii=False, separators=(",", ":"))
 
 
-def head(title, desc, canonical=True, robots="index,follow,max-image-preview:large"):
+def head(title, desc, canonical=True, robots="index,follow,max-image-preview:large", path="/", image=None, og_type="website", image_alt=None):
     p = ['<!doctype html><html lang="en"><head><meta charset="utf-8">',
          '<meta name="viewport" content="width=device-width,initial-scale=1">',
          f"<title>{e(title)}</title>", f'<meta name="description" content="{e(desc)}">',
@@ -225,14 +254,13 @@ def head(title, desc, canonical=True, robots="index,follow,max-image-preview:lar
          f'<meta http-equiv="Content-Security-Policy" content="{CSP}">',
          '<meta name="referrer" content="strict-origin-when-cross-origin">']
     if canonical:
-        p += [f'<link rel="canonical" href="{D}/">', '<meta property="og:type" content="website">',
+        img = image or f"{D}/og.png"
+        p += [f'<link rel="canonical" href="{D}{path}">', f'<meta property="og:type" content="{og_type}">',
               f'<meta property="og:site_name" content="{e(L["name"])}">',
               f'<meta property="og:title" content="{e(title)}">',
               f'<meta property="og:description" content="{e(desc)}">',
-              f'<meta property="og:url" content="{D}/">', f'<meta property="og:image" content="{D}/og.png">',
-              '<meta property="og:image:type" content="image/png">',
-              '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">',
-              f'<meta property="og:image:alt" content="{e(L["name"])} logo">',
+              f'<meta property="og:url" content="{D}{path}">', f'<meta property="og:image" content="{e(img)}">',
+              f'<meta property="og:image:alt" content="{e(image_alt or L["name"] + " logo")}">',
               '<meta property="og:locale" content="en_US">', '<meta name="twitter:card" content="summary_large_image">']
     p += [f'<meta name="theme-color" content="{C["ink"]}">',
           '<link rel="icon" href="/favicon.ico" sizes="32x32">',
@@ -244,6 +272,7 @@ def head(title, desc, canonical=True, robots="index,follow,max-image-preview:lar
 
 
 CENTER = ' class="c"'
+SAME_NAMES = {"musicbrainz": "MusicBrainz", "discogs": "Discogs", "wikidata": "Wikidata"}
 
 
 def index():
@@ -264,9 +293,9 @@ def index():
                 f'{e(a.get("linkLabel", "Official website"))} ↗</p></div></a></li>')
     roster = "".join(card(a) for a in ARTISTS)
     catalog = "".join(
-        f'<li id="{rel["slug"]}"><a href="{e(rel["links"][0]["url"])}">{picture(rel, "", "(min-width:40rem) 16rem, 45vw", 640)}'
+        f'<li id="{rel["slug"]}"><a href="{rel_url(rel)}">{picture(rel, "", "(min-width:40rem) 16rem, 45vw", 640)}'
         f'<h3>{e(rel["title"])}</h3><p class="up">{e(rel["artist"])} · {e(rel["type"])} · <time datetime="{rel["date"]}">{dt.date.fromisoformat(rel["date"]).year}</time></p>'
-        f'<span class="sr"> on {e(rel["links"][0]["name"])}</span></a></li>'
+        '</a></li>'
         for rel in RELEASES)
     first = R["links"][0]
     apple = next((l for l in R["links"] if l["name"] == "Apple Music"), None)
@@ -278,8 +307,7 @@ def index():
         head(TITLE, DESC)
         + f'<script type="application/ld+json">{jsonld()}</script></head><body>'
         + SYMBOLS + '<a class="skip up" href="#release">Skip to the latest release</a>'
-        + f'<header class="top"><a class="brand" href="/" aria-label="{e(L["name"])} home">{circle(C["orange"], ref=True)}</a>'
-        + '<nav class="up" aria-label="Sections"><a href="#release">Release</a><a href="#catalog">Catalog</a><a href="#artists">Artists</a><a href="#contact">Contact</a></nav></header>'
+        + top()
         + '<main>'
         + '<section class="hero" aria-labelledby="name"><div class="hero-in">'
         + f'<div class="stage rise" aria-hidden="true"><div class="disc">{circle(C["orange"], ref=True)}</div><div class="sheen"></div><div class="arm"></div></div>'
@@ -292,26 +320,90 @@ def index():
         + f'<div class="sleeve"><div class="rec" aria-hidden="true">{circle(C["orange"], ref=True)}</div>'
         + picture(R, "cover", "(min-width:60rem) 42rem, calc(100vw - 2rem)") + '</div><div>'
         + '<p class="kick up">Latest release</p>'
-        + f'<h2 class="title" id="release-title">{t}</h2>'
+        + f'<h2 class="title" id="release-title"><a href="{rel_url(R)}">{t}</a></h2>'
         + f'<p class="by"><a href="{e(main_artist["url"])}">{e(R["artist"])}</a></p>'
         + f'<p class="meta up">{e(R["type"])} · <time datetime="{R["date"]}">{fmt_date(R["date"])}</time> · {e(L["name"])}</p>'
         + f'<ul class="listen" aria-label="Listen to {t}">{links}</ul>'
         + '</div></section>'
         + f'<section class="sec" id="catalog" aria-labelledby="catalog-h"><p class="kick up">Discography</p><h2 id="catalog-h">Catalog</h2><ul class="cat">{catalog}</ul></section>'
         + f'<section class="sec" id="artists" aria-labelledby="artists-h"><p class="kick up">Roster</p><h2 id="artists-h">Artists</h2><ul class="roster">{roster}</ul></section>'
-        + f'<section class="sec about" aria-labelledby="about-h"><div><p class="kick up">The label</p><h2 id="about-h" class="sr">About {e(L["name"])}</h2><p>{e(L["intro"])}</p></div>'
+        + f'<section class="sec about" aria-labelledby="about-h"><div><p class="kick up">The label</p><h2 id="about-h" class="sr">About {e(L["name"])}</h2><p>{e(L["intro"])} {e(ROSTER_TXT)}</p></div>'
         + f'<div class="seal" aria-hidden="true">{circle(C["choco"], ref=True)}</div></section>'
         + '</main>'
         + '<footer class="sec foot" id="contact">'
         + f'<div><p class="kick up">Get in touch</p><h2>Contact</h2><a class="mail" href="mailto:{L["contact"]}">{L["contact"]}</a></div>'
         + '<div><p class="kick up">Elsewhere</p><h2 class="sr">Links</h2><ul class="follow">'
-        + "".join(f'<li><a href="{e(u)}">MusicBrainz</a></li>' for u in L["sameAs"] if "musicbrainz" in u)
+        + "".join(f'<li><a href="{e(u)}">{n}</a></li>' for u in L["sameAs"] for k, n in SAME_NAMES.items() if k in u)
         + "".join(f'<li><a href="{e(a["url"])}">{e(a["name"])}</a></li>' for a in ARTISTS)
         + '</ul></div>'
         + f'<p class="legal up">© {year} {e(L["name"])}</p>'
         + '</footer>'
         + f'<aside class="bar up" aria-label="Listen now"><b>Out now</b><i>{e(R["artist"])} — {t}</i><span>{bar}</span></aside>'
         + '</body></html>\n')
+
+
+def top():
+    return (f'<header class="top"><a class="brand" href="/" aria-label="{e(L["name"])} home">{circle(C["orange"], ref=True)}</a>'
+            '<nav class="up" aria-label="Sections"><a href="/#release">Release</a><a href="/#catalog">Catalog</a>'
+            '<a href="/#artists">Artists</a><a href="/#contact">Contact</a></nav></header>')
+
+
+def release_page(rel):
+    t = e(rel["title"])
+    path = rel_url(rel)
+    arts = rel_artists(rel)
+    by = rel["artist"]
+    by_html = e(by)
+    for a in sorted(arts, key=lambda a: -len(a["name"])):
+        by_html = re.sub(r"(?<![\w>])" + re.escape(e(a["name"])) + r"(?![\w<])", f'<a href="{e(a["url"])}">{e(a["name"])}</a>', by_html, count=1)
+    links = "".join(
+        f'<li><a href="{e(l["url"])}"><span class="pf">{e(l["name"])}</span>'
+        f'<span class="act up">{"Watch" if "watch?v=" in l["url"] else "Listen"}'
+        f'<span class="sr">{"" if "watch?v=" in l["url"] else " to"} {t} on {e(l["name"])}</span> ↗</span></a></li>'
+        for l in rel["links"])
+    others = [r for r in RELEASES if r is not rel]
+    more = "".join(
+        f'<li><a href="{rel_url(r)}">{picture(r, "", "(min-width:40rem) 16rem, 45vw", 640)}'
+        f'<h3>{e(r["title"])}</h3><p class="up">{e(r["artist"])} · {e(r["type"])} · <time datetime="{r["date"]}">{dt.date.fromisoformat(r["date"]).year}</time></p></a></li>'
+        for r in others)
+    title = f"{rel['title']} – {by} | {L['name']}"
+    desc = (f"“{rel['title']}”, the {rel['type'].lower()} by {by}, released on {fmt_date(rel['date'])} by {L['name']}, "
+            f"the independent record label created by {CB['name']}. Listen on {', '.join(l['name'] for l in rel['links'][:4])}.")
+    crumbs = {"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": L["name"], "item": f"{D}/"},
+        {"@type": "ListItem", "position": 2, "name": "Catalog", "item": f"{D}/#catalog"},
+        {"@type": "ListItem", "position": 3, "name": rel["title"], "item": f"{D}{path}"}]}
+    page = {"@type": "WebPage", "@id": f"{D}{path}", "url": f"{D}{path}", "name": title, "description": desc,
+            "inLanguage": "en", "isPartOf": {"@id": f"{D}/#website"}, "about": {"@id": f"{D}{path}#album"},
+            "primaryImageOfPage": rel["image"]["jpg"]["1200"], "breadcrumb": crumbs}
+    label = {"@type": "Organization", "@id": f"{D}/#label", "name": L["name"], "url": f"{D}/", "sameAs": L["sameAs"]}
+    groups = [clean({"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"],
+                     "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", [])))}) for a in arts]
+    ld = json.dumps({"@context": "https://schema.org", "@graph": [clean(page), clean(album_node(rel)), label] + groups},
+                    ensure_ascii=False, separators=(",", ":"))
+    return (
+        head(title, desc, path=path, image=rel["image"]["jpg"]["1200"], og_type="music.album", image_alt=rel["image"]["alt"])
+        + f'<script type="application/ld+json">{ld}</script></head><body>'
+        + SYMBOLS + '<a class="skip up" href="#main">Skip to content</a>' + top()
+        + '<main id="main">'
+        + '<section class="sec release page" aria-labelledby="release-title">'
+        + f'<div class="sleeve"><div class="rec" aria-hidden="true">{circle(C["orange"], ref=True)}</div>'
+        + picture(rel, "cover", "(min-width:60rem) 42rem, calc(100vw - 2rem)").replace(' loading="lazy"', ' fetchpriority="high"') + '</div><div>'
+        + f'<nav aria-label="Breadcrumb"><ol class="crumbs up"><li><a href="/">{e(L["name"])}</a></li><li><a href="/#catalog">Catalog</a></li><li aria-current="page">{t}</li></ol></nav>'
+        + f'<h1 class="title" id="release-title">{t}</h1>'
+        + f'<p class="by">{by_html}</p>'
+        + f'<p class="meta up">{e(rel["type"])} · <time datetime="{rel["date"]}">{fmt_date(rel["date"])}</time> · {e(L["name"])}</p>'
+        + f'<ul class="listen" aria-label="Listen to {t}">{links}</ul>'
+        + f'<p class="credit">“{t}” is a {e(rel["type"].lower())} by {by_html}, released on {fmt_date(rel["date"])} by '
+        + f'<a href="/">{e(L["name"])}</a>, the independent record label created by {e(CB["name"])}.'
+        + (f' UPC {e(rel["upc"])}.' if rel.get("upc") else "") + '</p>'
+        + '</div></section>'
+        + (f'<section class="sec" aria-labelledby="more-h"><p class="kick up">Catalog</p><h2 id="more-h">More from {e(L["name"])}</h2><ul class="cat">{more}</ul></section>' if more else "")
+        + '</main>'
+        + '<footer class="sec foot">'
+        + f'<div><p class="kick up">Get in touch</p><h2>Contact</h2><a class="mail" href="mailto:{L["contact"]}">{L["contact"]}</a></div>'
+        + f'<p class="legal up">© {max(dt.date.fromisoformat(rel["date"]).year, dt.date.today().year)} <a href="/">{e(L["name"])}</a></p>'
+        + '</footer></body></html>\n')
 
 
 def notfound():
@@ -347,7 +439,13 @@ def main():
     (DIST / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {D}/sitemap.xml\n")
     (DIST / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        f"  <url><loc>{D}/</loc><lastmod>{TODAY}</lastmod></url>\n</urlset>\n")
+        f"  <url><loc>{D}/</loc><lastmod>{TODAY}</lastmod></url>\n"
+        + "".join(f"  <url><loc>{D}{rel_url(r)}</loc><lastmod>{TODAY}</lastmod></url>\n" for r in RELEASES)
+        + "</urlset>\n")
+    for rel in RELEASES:
+        out = DIST / rel_url(rel).strip("/")
+        out.mkdir(parents=True)
+        (out / "index.html").write_text(release_page(rel), encoding="utf-8")
     (DIST / "CNAME").write_text(D.split("://")[1] + "\n")
     (DIST / ".nojekyll").write_text("")
     shutil.copytree(ROOT / "fonts", DIST / "fonts")
