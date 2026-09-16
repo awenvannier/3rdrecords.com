@@ -13,6 +13,7 @@ ROOT = pathlib.Path(__file__).parent
 DIST = ROOT / "dist"
 S = json.loads((ROOT / "site.json").read_text(encoding="utf-8"))
 L, RELEASES, ARTISTS, D = S["label"], S["releases"], S["artists"], S["domain"].rstrip("/")
+NEWS = sorted(S.get("news", []), key=lambda n: n["date"], reverse=True)
 R = RELEASES[0]
 e = lambda s: html.escape(s, quote=True)
 TODAY = dt.date.today().isoformat()
@@ -153,6 +154,8 @@ ul{list-style:none;margin:0;padding:0}
 .title a{text-decoration:none}
 .crumbs{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem;color:var(--grey)}.crumbs a{text-decoration:none}.crumbs a:hover{color:var(--orange)}.crumbs li+li::before{content:"/";margin-right:.5rem}
 .page{padding-top:7rem}
+.news{margin-top:2.5rem;border-top:1px solid var(--line)}.news li{border-bottom:1px solid var(--line)}.news a{display:grid;gap:.5rem;padding:1.5rem 0;text-decoration:none}.news h3{font-size:clamp(1.5rem,3.2vw,2.25rem);line-height:1.05;transition:color .2s}.news a:hover h3{color:var(--orange)}.news p{margin:0;max-width:44em;color:#e9e6e1}.news .up{color:var(--grey)}.more{margin:2rem 0 0}
+.lead{margin:1.5rem 0 0;max-width:36em;font-size:clamp(1.125rem,2.1vw,1.375rem);color:#e9e6e1}
 .credit{margin:2.5rem 0 0;max-width:34em;color:#e9e6e1}
 .meta{margin:1rem 0 2.25rem;color:var(--grey)}
 .listen{border-top:1px solid var(--line)}
@@ -187,6 +190,7 @@ ul{list-style:none;margin:0;padding:0}
 .nf h1{font-size:clamp(3.5rem,12vw,8rem)}
 .nf .seal{margin:0 auto;width:7rem}
 .sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:39.99rem){.top nav .x{display:none}}
 @media (min-width:40rem){.bar i{display:inline}.roster{grid-template-columns:repeat(auto-fill,minmax(18rem,24rem))}}
 @media (min-width:60rem){.hero-in{grid-template-columns:minmax(0,5fr) minmax(0,7fr);text-align:left;justify-items:start;align-items:center;column-gap:clamp(2rem,6vw,6rem)}.hero-in .stage{grid-row:1/5;width:min(100%,30rem);justify-self:center}.cta,.tag{justify-content:flex-start}.release{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end}.about,.foot{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.seal{justify-self:end}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}.rec{transform:translateX(40%)}.artist video{display:none}}
@@ -327,6 +331,8 @@ def index():
         + '</div></section>'
         + f'<section class="sec" id="catalog" aria-labelledby="catalog-h"><p class="kick up">Discography</p><h2 id="catalog-h">Catalog</h2><ul class="cat">{catalog}</ul></section>'
         + f'<section class="sec" id="artists" aria-labelledby="artists-h"><p class="kick up">Roster</p><h2 id="artists-h">Artists</h2><ul class="roster">{roster}</ul></section>'
+        + (f'<section class="sec" id="news" aria-labelledby="news-h"><p class="kick up">In the press</p><h2 id="news-h">News</h2>'
+           + news_list(NEWS[:3]) + '<p class="more"><a class="btn up" href="/news/">All news</a></p></section>' if NEWS else "")
         + f'<section class="sec about" aria-labelledby="about-h"><div><p class="kick up">The label</p><h2 id="about-h" class="sr">About {e(L["name"])}</h2><p>{e(L["intro"])} {e(ROSTER_TXT)}</p></div>'
         + f'<div class="seal" aria-hidden="true">{circle(C["choco"], ref=True)}</div></section>'
         + '</main>'
@@ -344,8 +350,8 @@ def index():
 
 def top():
     return (f'<header class="top"><a class="brand" href="/" aria-label="{e(L["name"])} home">{circle(C["orange"], ref=True)}</a>'
-            '<nav class="up" aria-label="Sections"><a href="/#release">Release</a><a href="/#catalog">Catalog</a>'
-            '<a href="/#artists">Artists</a><a href="/#contact">Contact</a></nav></header>')
+            '<nav class="up" aria-label="Sections"><a class="x" href="/#release">Release</a><a href="/#catalog">Catalog</a>'
+            '<a href="/#artists">Artists</a><a href="/news/">News</a><a class="x" href="/#contact">Contact</a></nav></header>')
 
 
 def release_page(rel):
@@ -362,6 +368,7 @@ def release_page(rel):
         f'<span class="sr">{"" if "watch?v=" in l["url"] else " to"} {t} on {e(l["name"])}</span> ↗</span></a></li>'
         for l in rel["links"])
     others = [r for r in RELEASES if r is not rel]
+    press = [n for n in NEWS if n.get("release") == rel["slug"]]
     more = "".join(
         f'<li><a href="{rel_url(r)}">{picture(r, "", "(min-width:40rem) 16rem, 45vw", 640)}'
         f'<h3>{e(r["title"])}</h3><p class="up">{e(r["artist"])} · {e(r["type"])} · <time datetime="{r["date"]}">{dt.date.fromisoformat(r["date"]).year}</time></p></a></li>'
@@ -398,11 +405,60 @@ def release_page(rel):
         + f'<a href="/">{e(L["name"])}</a>, the independent record label created by {e(CB["name"])}.'
         + (f' UPC {e(rel["upc"])}.' if rel.get("upc") else "") + '</p>'
         + '</div></section>'
+        + (f'<section class="sec" aria-labelledby="press-h"><p class="kick up">In the press</p><h2 id="press-h">Press</h2>{news_list(press)}</section>' if press else "")
         + (f'<section class="sec" aria-labelledby="more-h"><p class="kick up">Catalog</p><h2 id="more-h">More from {e(L["name"])}</h2><ul class="cat">{more}</ul></section>' if more else "")
         + '</main>'
         + '<footer class="sec foot">'
         + f'<div><p class="kick up">Get in touch</p><h2>Contact</h2><a class="mail" href="mailto:{L["contact"]}">{L["contact"]}</a></div>'
         + f'<p class="legal up">© {max(dt.date.fromisoformat(rel["date"]).year, dt.date.today().year)} <a href="/">{e(L["name"])}</a></p>'
+        + '</footer></body></html>\n')
+
+
+def news_list(items):
+    def one(n):
+        rel = next((r for r in RELEASES if r["slug"] == n.get("release")), None)
+        meta = " · ".join(x for x in [e(n["outlet"]), e(n["author"]) if n.get("author") else "",
+                                        f'<time datetime="{n["date"]}">{fmt_date(n["date"])}</time>'] if x)
+        return (f'<li><a href="{e(n["url"])}"><p class="up">{meta}</p><h3>{e(n["title"])}</h3>'
+                f'<p>{e(n["summary"])}</p><p class="up or">{e(n["artist"])}'
+                + (f' · {e(rel["title"])}' if rel else "") + ' · Read on ' + e(n["outlet"]) + ' ↗</p></a></li>')
+    return f'<ul class="news">{"".join(one(n) for n in items)}</ul>'
+
+
+def news_page():
+    path = "/news/"
+    title = f"News & Press | {L['name']}"
+    desc = (f"News and press coverage of {L['name']} and its artists {NAMES}: reviews, features and release announcements.")
+    arts = {a["name"]: a for a in ARTISTS}
+    items = []
+    for i, n in enumerate(NEWS, 1):
+        art = {"@type": "Article", "headline": n["title"], "url": n["url"], "datePublished": n["date"],
+               "publisher": {"@type": "Organization", "name": n["outlet"]},
+               "author": {"@type": "Person", "name": n["author"]} if n.get("author") else None,
+               "about": {"@id": arts[n["artist"]]["id"]} if n["artist"] in arts else {"@type": "MusicGroup", "name": n["artist"]}}
+        items.append({"@type": "ListItem", "position": i, "item": art})
+    ld = json.dumps({"@context": "https://schema.org", "@graph": [clean({
+        "@type": "CollectionPage", "@id": f"{D}{path}", "url": f"{D}{path}", "name": title, "description": desc,
+        "inLanguage": "en", "isPartOf": {"@id": f"{D}/#website"}, "about": {"@id": f"{D}/#label"},
+        "mainEntity": {"@type": "ItemList", "itemListElement": items},
+        "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": L["name"], "item": f"{D}/"},
+            {"@type": "ListItem", "position": 2, "name": "News", "item": f"{D}{path}"}]}}),
+        {"@type": "Organization", "@id": f"{D}/#label", "name": L["name"], "url": f"{D}/", "sameAs": L["sameAs"]}]},
+        ensure_ascii=False, separators=(",", ":"))
+    return (
+        head(title, desc, path=path)
+        + f'<script type="application/ld+json">{ld}</script></head><body>'
+        + SYMBOLS + '<a class="skip up" href="#main">Skip to content</a>' + top()
+        + '<main id="main"><section class="sec page" aria-labelledby="news-h">'
+        + f'<nav aria-label="Breadcrumb"><ol class="crumbs up"><li><a href="/">{e(L["name"])}</a></li><li aria-current="page">News</li></ol></nav>'
+        + '<h1 class="title" id="news-h">News</h1>'
+        + f'<p class="lead">Press coverage, reviews and features about {e(L["name"])} artists. Links open the original articles.</p>'
+        + news_list(NEWS)
+        + '</section></main>'
+        + '<footer class="sec foot">'
+        + f'<div><p class="kick up">Press enquiries</p><h2>Contact</h2><a class="mail" href="mailto:{L["contact"]}">{L["contact"]}</a></div>'
+        + f'<p class="legal up">© {dt.date.today().year} <a href="/">{e(L["name"])}</a></p>'
         + '</footer></body></html>\n')
 
 
@@ -440,8 +496,11 @@ def main():
     (DIST / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         f"  <url><loc>{D}/</loc><lastmod>{TODAY}</lastmod></url>\n"
-        + "".join(f"  <url><loc>{D}{rel_url(r)}</loc><lastmod>{TODAY}</lastmod></url>\n" for r in RELEASES)
+        + "".join(f"  <url><loc>{D}{u}</loc><lastmod>{TODAY}</lastmod></url>\n" for u in ([rel_url(r) for r in RELEASES] + (["/news/"] if NEWS else [])))
         + "</urlset>\n")
+    if NEWS:
+        (DIST / "news").mkdir()
+        (DIST / "news" / "index.html").write_text(news_page(), encoding="utf-8")
     for rel in RELEASES:
         out = DIST / rel_url(rel).strip("/")
         out.mkdir(parents=True)
