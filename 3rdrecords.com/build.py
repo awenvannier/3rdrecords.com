@@ -92,6 +92,7 @@ def circle(fill, mark="#FEFEFE", size=None, ref=False):
 
 
 CENTER = ' class="c"'
+LONG = ' class="long"'
 JS_VER = hashlib.sha256((ROOT / "js" / "site.js").read_bytes()).hexdigest()[:8]
 WORKLET_VER = hashlib.sha256((ROOT / "js" / "scratch.js").read_bytes()).hexdigest()[:8]
 CB_ARTIST = next((a for a in ARTISTS if CB and a["name"] == CB["name"]), ARTISTS[-1])
@@ -113,6 +114,12 @@ SYMBOLS = ('<svg class="sr" aria-hidden="true" focusable="false"><symbol id="cm"
 
 def icon(name):
     return f'<svg class="ico" aria-hidden="true" focusable="false"><use href="#i-{name}"/></svg>'
+
+
+def fit_cls(text):
+    """Keep short titles on one line: size class picked from the title length."""
+    n = len(text)
+    return " t8" if n <= 8 else " t10" if n <= 10 else " t12" if n <= 12 else ""
 
 
 def words(text):
@@ -219,6 +226,11 @@ main,.foot{position:relative;z-index:1}
 .crumbs a{text-decoration:none}.crumbs a:hover{color:var(--orange)}
 .crumbs li+li::before{content:"/";margin-right:.5rem}
 .release{display:grid;gap:clamp(2rem,5vw,4.5rem)}
+.relinfo{container-type:inline-size;min-width:0}
+.title.t8,.title.t10,.title.t12{white-space:nowrap}
+.title.t8{font-size:min(clamp(3.5rem,11vw,8rem),23cqi)}
+.title.t10{font-size:min(clamp(3.5rem,11vw,8rem),19cqi)}
+.title.t12{font-size:min(clamp(3.5rem,11vw,8rem),18.5cqi)}
 .sleeve{position:relative;margin-right:30%}
 .sleeve picture{position:relative;z-index:1;display:block;box-shadow:0 1.5rem 3rem rgba(0,0,0,.5)}
 .cover{width:100%;aspect-ratio:1;background:var(--choco)}
@@ -274,6 +286,11 @@ main,.foot{position:relative;z-index:1}
 .artist:hover video{transform:scale(1.05)}
 .artist .info{position:absolute;z-index:3;inset:auto 0 0;padding:1.25rem 1.25rem 1.1rem;background:linear-gradient(to top,rgba(21,21,20,.94),rgba(21,21,20,0))}
 .artist h2,.artist h3{font-size:clamp(2.5rem,6vw,3.75rem)}
+.artist .art{container-type:inline-size}
+.artist .long,.profile .long{white-space:nowrap}
+.artist .long{font-size:min(clamp(2.5rem,6vw,3.75rem),15cqi)}
+.profile>div:last-child{container-type:inline-size;min-width:0}
+.profile h1.long{font-size:min(clamp(4rem,15vw,10.5rem),17cqi)}
 .artist p{margin:.45rem 0 0;color:var(--orange)}
 .artist .go{top:.9rem;bottom:auto}
 .slider{position:relative}
@@ -414,7 +431,8 @@ html:not(.js) .reveal,html:not(.js) .stagger>*,html:not(.js) .words:not(.load) .
 .hero-in{grid-template-columns:minmax(0,5fr) minmax(0,7fr);text-align:left;justify-items:start;align-items:center;column-gap:clamp(2rem,6vw,6rem)}
 .hero-in .stage{grid-row:1/5;width:min(100%,30rem);justify-self:center}
 .cta,.tag{justify-content:flex-start}
-.release{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end}
+.release{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+.release .sleeve{position:sticky;top:6rem}
 .about{grid-template-columns:minmax(0,1fr) auto}
 .profile{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
 .roster{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -656,7 +674,7 @@ def artist_card(a, h="h3"):
     extra = f' · {n} release{"s" if n != 1 else ""}' if n else ""
     return (f'<li><a class="artist" href="{artist_url(a)}"><div class="art tilt">{img}{vid}'
             f'<span class="go">{icon("right")}</span>'
-            f'<div class="info"><{h}>{e(a["name"])}</{h}><p class="up">{e(a["role"])}{extra}</p></div></div></a></li>')
+            f'<div class="info"><{h}{LONG if len(a["name"]) > 6 else ""}>{e(a["name"])}</{h}><p class="up">{e(a["role"])}{extra}</p></div></div></a></li>')
 
 
 def news_list(items, h="h3"):
@@ -716,9 +734,9 @@ def index():
         # latest release
         + '<section class="sec release" id="release" aria-labelledby="release-title">'
         + f'<div class="sleeve reveal"><div class="rec" aria-hidden="true">{circle(C["orange"], ref=True)}</div>'
-        + picture(R, "cover", "(min-width:60rem) 42rem, calc(100vw - 2rem)") + '</div><div class="reveal">'
+        + picture(R, "cover", "(min-width:60rem) 42rem, calc(100vw - 2rem)") + '</div><div class="reveal relinfo">'
         + f'<p class="kick up">Latest release · New {e(R["type"].lower())}</p>'
-        + f'<h2 class="title words" id="release-title"><a href="{rel_url(R)}">{words(R["title"])}</a></h2>'
+        + f'<h2 class="title words{fit_cls(R["title"])}" id="release-title"><a href="{rel_url(R)}">{words(R["title"])}</a></h2>'
         + f'<p class="by">{by_links(R)}</p>'
         + f'<p class="meta up">{e(R["type"])} · <time datetime="{R["date"]}">{fmt_date(R["date"])}</time> · {e(L["name"])}</p>'
         + listen_list(R) + player(R)
@@ -803,9 +821,9 @@ def release_page(rel):
     main = (
         '<section class="sec release page" aria-labelledby="release-title">'
         + f'<div class="sleeve"><div class="rec" aria-hidden="true">{circle(C["orange"], ref=True)}</div>'
-        + picture(rel, "cover", "(min-width:60rem) 42rem, calc(100vw - 2rem)").replace(' loading="lazy"', ' fetchpriority="high"') + '</div><div>'
+        + picture(rel, "cover", "(min-width:60rem) 42rem, calc(100vw - 2rem)").replace(' loading="lazy"', ' fetchpriority="high"') + '</div><div class="relinfo">'
         + crumbs_html(crumbs)
-        + f'<h1 class="title words load" id="release-title">{words(rel["title"])}</h1>'
+        + f'<h1 class="title words load{fit_cls(rel["title"])}" id="release-title">{words(rel["title"])}</h1>'
         + f'<p class="by">{by_links(rel)}</p>'
         + f'<p class="meta up">{e(rel["type"])} · <time datetime="{rel["date"]}">{fmt_date(rel["date"])}</time> · {e(L["name"])}</p>'
         + listen_list(rel) + player(rel)
@@ -874,10 +892,10 @@ def artist_page(a):
         + f'<div class="art tilt portrait">{img}{vid}</div><div>'
         + crumbs_html(crumbs)
         + f'<p class="kick up">{"Founder of " + e(L["name"]) if founder else "Featured on " + e(L["name"]) + " releases"}</p>'
-        + f'<h1 class="words load" id="page-h">{words(a["name"])}</h1>'
+        + f'<h1 class="words load{" long" if len(a["name"]) > 6 else ""}" id="page-h">{words(a["name"])}</h1>'
         + f'<p class="role">{" · ".join(meta)}</p>'
-        + f'<p class="meta up">{len(rels)} release{"s" if len(rels) != 1 else ""} on {e(L["name"])}'
-        + (f' · {len(press)} press article{"s" if len(press) != 1 else ""}' if press else "") + '</p>'
+        + (f'<p class="meta up">{len(rels)} release{"s" if len(rels) != 1 else ""} on {e(L["name"])}'
+           + (f' · {len(press)} press article{"s" if len(press) != 1 else ""}' if press else "") + '</p>' if rels else '<div class="meta"></div>')
         + f'<ul class="listen" aria-label="{e(a["name"])} links">{lis}</ul></div></section>'
         + (f'<section class="sec" aria-labelledby="rel-h">{section_head("Discography", "Releases", on_label, "rel-h")}'
            f'<ul class="grid stagger">{"".join(release_card(r) for r in rels)}</ul></section>' if rels else "")
