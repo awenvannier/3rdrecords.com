@@ -92,6 +92,67 @@
     if (!('IntersectionObserver' in window)) return cb(true);
     new IntersectionObserver(es => cb(es[0].isIntersecting)).observe(el);
   };
+  /* scratch sound: a synthesized "ahh" vocal read by an AudioWorklet that follows the platter */
+  const deck = { ctx: null, node: null, ready: null };
+  const makeSample = sr => {
+    const len = Math.floor(sr * 1.8), out = new Float32Array(len);
+    // two vowels ("ahh" then "ohh"), formants F1-F3 with bandwidths
+    const parts = [
+      { t0: 0, t1: .86, f0: 165, glide: .22, F: [[760, 90, 1], [1150, 110, .55], [2500, 170, .22]] },
+      { t0: .9, t1: 1.76, f0: 128, glide: .12, F: [[570, 80, 1], [860, 100, .5], [2400, 170, .16]] },
+    ];
+    const H = 34, TAU = Math.PI * 2;
+    for (const v of parts) {
+      const a = Math.floor(v.t0 * sr), z = Math.floor(v.t1 * sr);
+      const ph = new Float64Array(H + 1), amp = new Float64Array(H + 1);
+      for (let n = a; n < z; n++) {
+        const t = (n - a) / sr, d = (z - a) / sr;
+        const f0 = v.f0 * (1 + v.glide * Math.exp(-t * 7)) * (1 + .014 * Math.sin(TAU * 5.3 * t));
+        if ((n - a) % 64 === 0) {
+          for (let k = 1; k <= H; k++) {
+            const fk = k * f0;
+            let g = 0;
+            for (const [F, bw, w] of v.F) g += w / (1 + ((fk - F) / bw) ** 2);
+            amp[k] = fk < sr / 2 - 500 ? g / Math.sqrt(k) : 0;
+          }
+        }
+        const env = Math.min(1, t / .015) * Math.min(1, (d - t) / .12) * (1 - .25 * t / d);
+        let s = 0;
+        for (let k = 1; k <= H; k++) { ph[k] += TAU * k * f0 / sr; s += amp[k] * Math.sin(ph[k]); }
+        out[n] += s * env;
+      }
+    }
+    let peak = 0;
+    for (let n = 0; n < len; n++) peak = Math.max(peak, Math.abs(out[n]));
+    let seed = 7;
+    for (let n = 0; n < len; n++) {
+      seed = (seed * 16807) % 2147483647;
+      const noise = (seed / 2147483647 - .5) * .012 + (seed % 20011 === 0 ? (seed % 2 ? .14 : -.14) : 0); // hiss + crackle
+      out[n] = out[n] / (peak || 1) * .82 + noise;
+    }
+    return out;
+  };
+  const deckOn = () => {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || !disc.dataset.worklet) return null;
+    if (!deck.ctx) {
+      deck.ctx = new AC();
+      if (!deck.ctx.audioWorklet) return null;
+      deck.ready = deck.ctx.audioWorklet.addModule(disc.dataset.worklet).then(() => {
+        const node = new AudioWorkletNode(deck.ctx, 'scratch', { outputChannelCount: [2] });
+        const comp = deck.ctx.createDynamicsCompressor();
+        const vol = deck.ctx.createGain();
+        vol.gain.value = .7;
+        node.connect(comp); comp.connect(vol); vol.connect(deck.ctx.destination);
+        const buf = makeSample(deck.ctx.sampleRate);
+        node.port.postMessage({ buf, spd: deck.ctx.sampleRate / 300 }, [buf.buffer]); // 300°/s = normal speed
+        deck.node = node;
+      }).catch(() => { deck.node = null; });
+    }
+    if (deck.ctx.state === 'suspended') deck.ctx.resume();
+    return deck.ready;
+  };
+  const deckSend = m => { if (deck.node) deck.node.port.postMessage(m); };
   if (disc && !reduce) {
     const BASE = 72; // degrees per second, same as the CSS spin
     let angle = 0, vel = BASE, last = 0, drag = null, on = true, running = false;
@@ -117,6 +178,9 @@
       drag = { a: angleOf(ev), t: performance.now() };
       disc.setPointerCapture(ev.pointerId);
       disc.classList.add('grab');
+      const r = deckOn();
+      const grab = () => deckSend({ a: angle, grab: true, on: !!drag });
+      if (deck.node) grab(); else if (r) r.then(grab);
     });
     disc.addEventListener('pointermove', ev => {
       if (!drag) return;
@@ -127,8 +191,9 @@
       angle += da;
       vel = vel * .4 + (da / (Math.max(8, now - drag.t) / 1000)) * .6;
       drag.a = a; drag.t = now;
+      deckSend({ a: angle });
     });
-    const release = () => { drag = null; disc.classList.remove('grab'); };
+    const release = () => { if (drag) deckSend({ on: false }); drag = null; disc.classList.remove('grab'); };
     disc.addEventListener('pointerup', release);
     disc.addEventListener('pointercancel', release);
     disc.addEventListener('lostpointercapture', release);

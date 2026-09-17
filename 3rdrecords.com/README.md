@@ -8,7 +8,7 @@ Le script `js/site.js` ajoute les interactions : menu mobile, apparitions au scr
 - `site.json` : le contenu (texte du label, artistes, dernière sortie et liens d'écoute).
 - `assets/*.svg` : les logos vectorisés (marque 3RD, mot « records », logo rond).
 - `fonts/` : Avigea (titres) et Roboto (texte), sous-ensembles latin en woff2.
-- `js/site.js` : les interactions (copié tel quel dans `dist/js/`).
+- `js/site.js` : les interactions ; `js/scratch.js` : le son de scratch du vinyle (AudioWorklet). Copiés tels quels dans `dist/js/`.
 - `build.py` : génère `dist/`. Il faut Python 3.9+ ainsi que `pip install pillow cairosvg`.
 
 Pour une nouvelle sortie, ajoute-la en tête de `releases` dans `site.json` puis pousse sur `main` : GitHub Actions reconstruit et redéploie le site.

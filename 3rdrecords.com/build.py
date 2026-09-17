@@ -92,6 +92,7 @@ def circle(fill, mark="#FEFEFE", size=None, ref=False):
 
 CENTER = ' class="c"'
 JS_VER = hashlib.sha256((ROOT / "js" / "site.js").read_bytes()).hexdigest()[:8]
+WORKLET_VER = hashlib.sha256((ROOT / "js" / "scratch.js").read_bytes()).hexdigest()[:8]
 CB_ARTIST = next((a for a in ARTISTS if CB and a["name"] == CB["name"]), ARTISTS[-1])
 
 
@@ -194,12 +195,13 @@ main,.foot{position:relative;z-index:1}
 .lm{width:1.5rem;height:1.5rem;animation:spin 12s linear infinite}
 .cta{margin:0;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.75rem 1.25rem}
 .eq{width:100%;height:4.5rem;opacity:.6}
-.ticker{overflow:hidden;border-block:1px solid var(--line);padding:.9rem 0;white-space:nowrap;background:var(--ink)}
-.ticker div{display:inline-flex;animation:tick 32s linear infinite}
+.ticker{overflow:hidden;border-block:1px solid rgba(254,254,254,.07);padding:.55rem 0;white-space:nowrap;background:var(--ink);opacity:.55;transition:opacity .4s}
+.ticker:hover{opacity:.9}
+.ticker div{display:inline-flex;animation:tick 60s linear infinite}
 .ticker:hover div{animation-play-state:paused}
-.ticker span{font:400 clamp(1.75rem,4vw,2.75rem)/1 var(--d);padding-right:2.5rem;display:inline-flex;align-items:center;gap:2.5rem}
-.ticker span::after{content:"";width:.6em;aspect-ratio:1;border-radius:50%;background:var(--orange)}
-.ticker b{font-weight:400;color:var(--orange)}
+.ticker span{font:500 .6875rem/1 Roboto,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:var(--grey);padding-right:2rem;display:inline-flex;align-items:center;gap:2rem}
+.ticker span::after{content:"";width:.35rem;aspect-ratio:1;border-radius:50%;background:var(--orange);opacity:.7}
+.ticker b{font-weight:500;color:var(--soft)}
 .sec{max-width:84rem;margin:0 auto;padding:clamp(5rem,12vw,9rem) var(--pad) 0}
 .page{padding-top:clamp(7rem,14vw,10rem)}
 .head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1.5rem 3rem;margin-bottom:clamp(2rem,5vw,3.5rem)}
@@ -291,9 +293,9 @@ main,.foot{position:relative;z-index:1}
 .bars button::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:var(--line);transition:background-color .3s}
 .bars button.done::before{background:rgba(246,161,14,.4)}
 .bars button[aria-current=true]::before{background:var(--orange)}
-.backdrop{position:absolute;inset:-4rem -20vw;z-index:-1;overflow:hidden;pointer-events:none}
-.backdrop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(80px) saturate(1.3);opacity:0;transform:scale(1.2);transition:opacity 1s}
-.backdrop img.on{opacity:.22}
+.backdrop{position:absolute;inset:clamp(2rem,6vw,4rem) 0 -2rem;z-index:-1;pointer-events:none;-webkit-mask-image:radial-gradient(closest-side,#000 25%,transparent);mask-image:radial-gradient(closest-side,#000 25%,transparent)}
+.backdrop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(90px) saturate(1.2);opacity:0;transition:opacity 1s}
+.backdrop img.on{opacity:.18}
 .feat{position:relative;isolation:isolate}
 .news{border-top:1px solid var(--line)}
 .news li{border-bottom:1px solid var(--line)}
@@ -679,7 +681,8 @@ def section_head(kick, title, text="", hid=None, level="h2", extra=""):
 
 def index():
     t = e(R["title"])
-    n = len(RELEASES)
+    PAST = RELEASES[1:]  # the latest release already has its own section above
+    n = len(PAST)
     items = [f"<b>{t}</b> {e(R['artist'])}", "Out now", e(L["name"]), f"Created by {e(CB['name'])}"]
     tick = "".join(f"<span>{i}</span>" for i in items * 2)
     slides = "".join(
@@ -689,20 +692,20 @@ def index():
         f'<h3><a href="{rel_url(rel)}">{e(rel["title"])}</a></h3><p class="by">{by_links(rel)}</p>'
         '<p class="pills">' + "".join(f'<a href="{e(l["url"])}">{e(l["name"])} {icon("out")}</a>' for l in rel["links"][:4]) + '</p>'
         f'<a class="btn up magnet" href="{rel_url(rel)}">Release page {icon("right")}</a></div></li>'
-        for k, rel in enumerate(RELEASES, 1))
+        for k, rel in enumerate(PAST, 1))
     on = ' class="on"'
     backdrop = "".join(f'<img src="{e(rel["image"]["jpg"]["640"])}" alt="" loading="lazy" decoding="async"{on if k == 0 else ""}>'
-                       for k, rel in enumerate(RELEASES))
+                       for k, rel in enumerate(PAST))
     ctrl = (f'<div class="ctrl"><button class="round magnet" type="button" data-prev aria-label="Previous release">{icon("left")}</button>'
             f'<span class="count up" aria-hidden="true"><b>01</b> / {n:02d}</span>'
             f'<button class="round magnet" type="button" data-next aria-label="Next release">{icon("right")}</button></div>')
     bars = '<div class="bars">' + "".join(
         f'<button type="button" aria-label="Show {e(rel["title"])}" aria-current="{"true" if k == 0 else "false"}"></button>'
-        for k, rel in enumerate(RELEASES)) + '</div>'
+        for k, rel in enumerate(PAST)) + '</div>'
     main = (
         '<section class="hero" aria-labelledby="name"><div class="hero-in">'
-        + f'<div class="stage rise" aria-hidden="true"><div class="disc">{circle(C["orange"], ref=True)}</div><div class="sheen"></div><div class="arm"></div>'
-        + '<span class="hint up">Drag to scratch</span></div>'
+        + f'<div class="stage rise" aria-hidden="true"><div class="disc" data-worklet="/js/scratch.js?v={WORKLET_VER}">{circle(C["orange"], ref=True)}</div><div class="sheen"></div><div class="arm"></div>'
+        + '<span class="hint up">Drag to scratch · sound on</span></div>'
         + f'<h1 id="name" class="rise d2">{lockup("lockup", C["orange"], C["white"], link="/duck/")}<span class="sr">{e(L["name"])}</span></h1>'
         + f'<p class="tag up rise d3">Record label · Created by <img class="lm" src="{e(CB["logo"])}" width="24" height="24" alt=""> {e(CB["name"])}</p>'
         + f'<p class="cta rise d4"><a class="btn up fill magnet" href="#release">Listen to {t} {icon("right")}</a>'
@@ -721,11 +724,11 @@ def index():
         + f'<p class="more"><a class="btn up magnet" href="{rel_url(R)}">Release page {icon("right")}</a></p>'
         + '</div></section>'
         # catalog slider
-        + '<section class="sec feat" id="catalog" aria-labelledby="catalog-h">'
-        + f'<div class="backdrop" aria-hidden="true">{backdrop}</div>'
-        + section_head("Discography", "Catalog", f"Every {e(L['name'])} release so far. Use the arrows or your keyboard to browse.", "catalog-h", extra=ctrl)
-        + f'<div class="slider reveal"><ul class="track" aria-label="{e(L["name"])} releases">{slides}</ul></div>{bars}'
-        + f'<p class="more"><a class="btn up magnet" href="/catalog/">Full catalog {icon("right")}</a></p></section>'
+        + ('<section class="sec feat" id="catalog" aria-labelledby="catalog-h">'
+           + f'<div class="backdrop" aria-hidden="true">{backdrop}</div>'
+           + section_head("Discography", "Catalog", f"Earlier releases from {e(L['name'])}." + (" Use the arrows or your keyboard to browse." if n > 1 else ""), "catalog-h", extra=ctrl if n > 1 else "")
+           + f'<div class="slider reveal"><ul class="track" aria-label="Earlier {e(L["name"])} releases">{slides}</ul></div>{bars if n > 1 else ""}'
+           + f'<p class="more"><a class="btn up magnet" href="/catalog/">Full catalog {icon("right")}</a></p></section>' if PAST else "")
         # artists
         + '<section class="sec" id="artists" aria-labelledby="artists-h">'
         + section_head("Roster", "Artists", f"The artists releasing music on {e(L['name'])}.", "artists-h")
