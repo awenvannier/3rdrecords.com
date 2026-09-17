@@ -2,7 +2,7 @@
 
 Site statique du label 3rd Records, sans traceur ni cookie.
 
-Pages générées : accueil, `/catalog/`, `/releases/<slug>/`, `/artists/`, `/artists/<slug>/`, `/news/`, `/contact/` (+ `/duck/` et le portfolio).
+Pages générées : accueil, `/catalog/`, `/releases/<slug>/`, `/artists/`, `/artists/<slug>/`, `/news/`, `/submit/`, `/contact/` (+ `/duck/` et le portfolio).
 Le script `js/site.js` ajoute les interactions : menu mobile, apparitions au scroll, vinyle à « scratcher », égaliseur, carrousel du catalogue (flèches du clavier), filtre par artiste, lecteurs Spotify chargés au clic, copie de l'adresse e-mail. Toutes les pages restent lisibles sans JavaScript.
 
 - `site.json` : le contenu (texte du label, artistes, dernière sortie et liens d'écoute).
@@ -20,3 +20,11 @@ Les pochettes et photos d'artistes sont servies depuis le site de l'artiste (djo
 - Générateur : `portfolio/portfolio.py`, appelé par `build.py`.
 - Les images distantes (Canva, Apple, YouTube) sont téléchargées et converties en WebP pendant le build. Pour remplacer une image, dépose un fichier `portfolio/img/<clé>.webp` (clés : portrait, braquass, ikh, showreel, kingdom, lbb, lastnight).
 - Polices : `portfolio/fonts/` (Bricolage Grotesque, Inter, JetBrains Mono, licence OFL).
+
+## Formulaire de submissions (3rdrecords.com/submit/)
+
+- Le formulaire envoie les données au script Google Apps Script « 3rd Records Duck Scoreboard » (compte awen.vannier@gmail.com), le même que le scoreboard du jeu. URL dans `site.json` → `submit_api`.
+- Chaque envoi ajoute une ligne dans la Google Sheet « 3rd Records Submissions » (onglet `submissions`) et envoie un e-mail à contact@3rdrecords.com (répondre au mail répond directement à l'artiste).
+- Champs : titre, genre (Pop, Bedroom pop, Lofi, Hip-hop, Other), lien d'écoute, nom d'artiste, e-mail, Instagram, profil streaming, description, case droits.
+- Anti-spam : champ piège invisible, envoi refusé avant 4 s, 3 envois max par e-mail sur 6 h, 60 envois max par heure.
+- Code du script : `scoreboard/Code.gs`. Après modification : Déployer → Gérer les déploiements → modifier → Nouvelle version.

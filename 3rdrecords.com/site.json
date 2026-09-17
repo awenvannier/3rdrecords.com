@@ -1,10 +1,11 @@
 {
   "duck_api": "https://script.google.com/macros/s/AKfycbx2xzm8x32LI7ZiCBnMRJ5gotIWWzuwd17dzxpiSjvTfR7JsTj-i6jYzASt6KKqHzPW/exec",
+  "submit_api": "https://script.google.com/macros/s/AKfycbx2xzm8x32LI7ZiCBnMRJ5gotIWWzuwd17dzxpiSjvTfR7JsTj-i6jYzASt6KKqHzPW/exec",
   "domain": "https://3rdrecords.com",
   "label": {
     "name": "3rd Records",
-    "description": "Record label created by Lead Major.",
-    "intro": "3rd Records is an independent record label created by Lead Major. Our latest release is “Moving Out”, the new single by liid.",
+    "description": "Independent pop, bedroom pop, lofi and hip-hop record label created by Lead Major.",
+    "intro": "3rd Records is an independent record label for pop, bedroom pop, lofi and hip-hop, created by Lead Major. Our latest release is “Moving Out”, the new single by liid.",
     "contact": "contact@3rdrecords.com",
     "sameAs": [
       "https://musicbrainz.org/label/e4eba684-08be-4ec2-980d-0bf7a8a4446e",
@@ -22,7 +23,13 @@
       "3rd Records label",
       "3rdrecords"
     ],
-    "disambiguatingDescription": "Independent record label created by Lead Major, releasing liid., Djouher, Swink, nytø and Lead Major. Not related to Third Man Records."
+    "disambiguatingDescription": "Independent pop, bedroom pop, lofi and hip-hop record label created by Lead Major, releasing liid., Djouher, Swink, nytø and Lead Major. Not related to Third Man Records.",
+    "genres": [
+      "Pop",
+      "Bedroom pop",
+      "Lofi",
+      "Hip-hop"
+    ]
   },
   "artists": [
     {

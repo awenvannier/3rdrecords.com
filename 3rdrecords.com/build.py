@@ -42,9 +42,11 @@ def picture(rel, cls, sizes, w=640):
 C = {"choco": "#512321", "orange": "#F6A10E", "ink": "#1D1D1B", "white": "#FEFEFE", "grey": "#9E9E9E"}
 
 CB = L.get("createdBy")
+GENRES = L.get("genres", [])
+GENRE_TXT = (", ".join(g.lower() for g in GENRES[:-1]) + " and " + GENRES[-1].lower()) if len(GENRES) > 1 else "".join(GENRES).lower()
 NAMES = ", ".join(a["name"] for a in ARTISTS[:-1]) + " and " + ARTISTS[-1]["name"]
 TITLE = f"{L['name']} | Independent Record Label"
-DESC = (f"{L['name']} is an independent record label created by {CB['name']}. Artists featured on its releases: {NAMES}. "
+DESC = (f"{L['name']} is an independent {GENRE_TXT} record label created by {CB['name']}. Artists featured on its releases: {NAMES}. "
         f"Latest release: “{R['title']}” by {R['artist']}".rstrip(".") + ".")
 ROSTER_TXT = f"Artists who have taken part in its releases include {NAMES}, and the catalog counts {len(RELEASES)} releases so far."
 POOL_TXT = f"Not an exclusive roster: these are the artists who have taken part in {L['name']} projects."
@@ -379,6 +381,66 @@ main,.foot{position:relative;z-index:1}
 .nf h1{font-size:clamp(3.5rem,12vw,8rem)}
 .nf .seal{margin:0 auto;width:7rem}
 .nf .seal svg{animation:spin 5s linear infinite}
+.cta-band{display:grid;gap:1.5rem 3rem;align-items:end}
+.cta-band h2{font-size:clamp(3rem,8vw,6rem)}
+.cta-side{display:grid;gap:1.5rem;justify-items:start}
+.cta-side p{margin:0;max-width:30em;color:var(--soft)}
+.subgrid{display:grid;gap:clamp(2.5rem,6vw,6rem);align-items:start}
+.steps ol{display:grid;gap:0;margin:0 0 2rem}
+.steps li{display:grid;grid-template-columns:3.25rem 1fr;gap:.35rem 1rem;padding:1.35rem 0;border-bottom:1px solid var(--line)}
+.steps li:first-child{border-top:1px solid var(--line)}
+.steps b{grid-row:span 2;font:400 2.25rem/1 var(--d);color:var(--orange)}
+.steps strong{font:400 1.5rem/1.1 var(--d)}
+.steps span{color:var(--soft);font-size:.9375rem}
+.steps .mute a{color:var(--white)}
+.subform fieldset{border:0;margin:0 0 3rem;padding:0;min-width:0;display:grid;gap:1.9rem}
+.subform legend{display:flex;align-items:baseline;gap:.8rem;padding:0;margin-bottom:1.75rem;font:400 clamp(1.9rem,3.6vw,2.6rem)/1 var(--d)}
+.subform legend i{font:500 .6875rem/1 Roboto,sans-serif;letter-spacing:.2em;color:var(--orange);font-style:normal}
+.two{display:grid;gap:1.9rem}
+.field{display:grid;gap:.45rem;min-width:0}
+.lab{display:flex;justify-content:space-between;align-items:center;gap:1rem;min-height:1.5rem}
+.lab label{font-size:.6875rem;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--grey);transition:color .2s}
+.field:focus-within label{color:var(--orange)}
+.field input,.field textarea{width:100%;margin:0;padding:.65rem 0;border:0;border-bottom:1px solid rgba(254,254,254,.25);border-radius:0;background:transparent;color:var(--white);font:400 clamp(1.125rem,2vw,1.375rem)/1.4 Roboto,system-ui,sans-serif;outline:none;box-shadow:0 1px 0 transparent;transition:border-color .25s,box-shadow .25s}
+.field textarea{min-height:10rem;resize:vertical;line-height:1.55}
+.field input::placeholder,.field textarea::placeholder{color:#6d6a66}
+.field input:focus,.field textarea:focus{border-color:var(--orange);box-shadow:0 1px 0 var(--orange)}
+.field input:-webkit-autofill{-webkit-text-fill-color:var(--white);-webkit-box-shadow:0 0 0 40rem var(--ink) inset;caret-color:var(--white)}
+.field small{display:flex;justify-content:space-between;gap:1rem;color:var(--grey);font-size:.8125rem}
+.count-c{margin-left:auto;font-variant-numeric:tabular-nums}
+.err{color:#ff8a6b;font-size:.8125rem;min-height:0}
+.err:empty{display:none}
+.bad input,.bad textarea{border-color:#ff8a6b}
+.plat{padding:.25rem .65rem;border-radius:999px;background:rgba(246,161,14,.14);color:var(--orange);font-size:.625rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s}
+.plat.on{opacity:1;transform:none}
+.lab .lbl{font-size:.6875rem;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--grey)}
+.genres{display:flex;flex-wrap:wrap;gap:.5rem;padding-top:.35rem}
+.pill{position:relative;cursor:pointer}
+.pill input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.pill span{display:inline-flex;align-items:center;height:2.6rem;padding:0 1.15rem;border:1px solid rgba(254,254,254,.25);border-radius:999px;font-size:.9375rem;transition:background-color .2s,border-color .2s,color .2s}
+.pill:hover span{border-color:var(--orange)}
+.pill input:checked+span{background:var(--orange);border-color:var(--orange);color:var(--ink)}
+.pill input:focus-visible+span{outline:2px solid var(--orange);outline-offset:3px}
+.bad .pill span{border-color:#ff8a6b}
+.check-wrap{display:grid;gap:.45rem}
+.check{display:flex;gap:.9rem;align-items:flex-start;cursor:pointer;color:var(--soft)}
+.check input{appearance:none;-webkit-appearance:none;flex:none;display:grid;place-items:center;width:1.45rem;height:1.45rem;margin:.05rem 0 0;border:1px solid var(--grey);border-radius:.35rem;background:transparent;cursor:pointer;transition:background-color .2s,border-color .2s}
+.check input::after{content:"";width:.7rem;height:.38rem;margin-top:-.2rem;border:2px solid var(--ink);border-top:0;border-right:0;transform:rotate(-45deg) scale(0);transition:transform .2s var(--ease)}
+.check input:checked{background:var(--orange);border-color:var(--orange)}
+.check input:checked::after{transform:rotate(-45deg) scale(1)}
+.check input:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
+.bad .check input{border-color:#ff8a6b}
+.hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.privacy{margin:0 0 1.5rem;color:var(--grey);font-size:.875rem;max-width:36em}
+.send{min-height:3.5rem;padding:0 2.1rem}
+.send:disabled{opacity:.6;cursor:wait}
+.form-msg{margin:1rem 0 0;color:#ff8a6b}
+.form-msg:empty{display:none}
+.done{display:grid;gap:1.25rem;justify-items:start;padding:clamp(2rem,5vw,3.5rem);border:1px solid var(--line);border-radius:14px;background:var(--deep);outline:none;animation:rise .6s var(--ease) both}
+.done h2{font-size:clamp(2.5rem,6vw,4.5rem)}
+.done p{margin:0;max-width:34em;color:var(--soft)}
+.done .more{margin:.5rem 0 0}
+.tick{display:grid;place-items:center;width:3.5rem;height:3.5rem;border-radius:50%;background:var(--orange);color:var(--ink)}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes bob{0%,100%{transform:rotate(0) translateY(0)}30%{transform:rotate(-4deg) translateY(-2%)}60%{transform:rotate(2deg) translateY(0)}}
 @keyframes glow{from{opacity:.55;transform:translate(-50%,-50%) scale(.9)}to{opacity:1;transform:translate(-50%,-50%) scale(1.08)}}
@@ -425,13 +487,17 @@ html:not(.js) .reveal,html:not(.js) .stagger>*,html:not(.js) .words:not(.load) .
 .open .nav a{opacity:1;transform:none}
 .open .nav a:nth-child(2){transition-delay:.05s}.open .nav a:nth-child(3){transition-delay:.1s}.open .nav a:nth-child(4){transition-delay:.15s}.open .nav a:nth-child(5){transition-delay:.2s}
 }
-@media (min-width:40rem){.bar i{display:block}}
+@media (min-width:40rem){.bar i{display:block}.two{grid-template-columns:1fr 1fr}}
+@media (max-width:64rem){.top .brand span{display:none}}
 @media (min-width:48rem){.slide{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}}
 @media (min-width:60rem){
 .hero-in{grid-template-columns:minmax(0,5fr) minmax(0,7fr);text-align:left;justify-items:start;align-items:center;column-gap:clamp(2rem,6vw,6rem)}
 .hero-in .stage{grid-row:1/5;width:min(100%,30rem);justify-self:center}
 .cta,.tag{justify-content:flex-start}
 .release{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+.subgrid{grid-template-columns:minmax(0,4fr) minmax(0,7fr)}
+.steps{position:sticky;top:6rem}
+.cta-band{grid-template-columns:minmax(0,1fr) minmax(0,26rem)}
 .release .sleeve{position:sticky;top:6rem}
 .about{grid-template-columns:minmax(0,1fr) auto}
 .profile{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
@@ -442,7 +508,7 @@ html:not(.js) .reveal,html:not(.js) .stagger>*,html:not(.js) .words:not(.load) .
 """.strip()
 CSS = "".join(line.strip() for line in CSS.splitlines())
 CSS_HASH = base64.b64encode(hashlib.sha256(CSS.encode()).digest()).decode()
-CSP = (f"default-src 'none'; script-src 'self'; connect-src 'self'; img-src 'self' {' '.join(ORIGINS)}; font-src 'self'; media-src 'self'; "
+CSP = (f"default-src 'none'; script-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' {' '.join(ORIGINS)}; font-src 'self'; media-src 'self'; "
        f"frame-src https://open.spotify.com; style-src 'sha256-{CSS_HASH}'; base-uri 'none'; form-action 'none'")
 
 
@@ -481,7 +547,7 @@ def jsonld():
         {"@type": "WebPage", "@id": f"{D}/#webpage", "url": f"{D}/", "name": TITLE, "description": DESC,
          "inLanguage": "en", "isPartOf": {"@id": f"{D}/#website"}, "about": {"@id": lid},
          "primaryImageOfPage": f"{D}/og.png", "dateModified": TODAY},
-        {"@type": "Organization", "@id": lid, "name": L["name"], "url": f"{D}/", "description": L["description"],
+        {"@type": "Organization", "@id": lid, "name": L["name"], "url": f"{D}/", "description": L["description"], "knowsAbout": [g + (" music" if g.lower() in ("pop", "lofi") else "") for g in GENRES] or None,
          "alternateName": L.get("alternateName"), "disambiguatingDescription": L.get("disambiguatingDescription"),
          "logo": f"{D}/logo.png", "image": f"{D}/og.png", "email": L["contact"], "sameAs": L["sameAs"],
          "founder": {"@id": CB["id"]} if CB else None,
@@ -505,7 +571,7 @@ def artist_url(a):
 
 
 NAV = [("Release", rel_url(R), "release"), ("Catalog", "/catalog/", "catalog"), ("Artists", "/artists/", "artists"),
-       ("News", "/news/", "news"), ("Contact", "/contact/", "contact")]
+       ("News", "/news/", "news"), ("Submit", "/submit/", "submit"), ("Contact", "/contact/", "contact")]
 LINK_NAMES = {"instagram": "Instagram", "musicbrainz": "MusicBrainz", "discogs": "Discogs", "wikidata": "Wikidata",
               "spotify": "Spotify", "apple.com": "Apple Music", "deezer": "Deezer", "tidal": "Tidal", "youtube": "YouTube",
               "soundcloud": "SoundCloud", "bandcamp": "Bandcamp", "tiktok": "TikTok"}
@@ -702,7 +768,7 @@ def index():
     t = e(R["title"])
     PAST = RELEASES[1:]  # the latest release already has its own section above
     n = len(PAST)
-    items = [f"<b>{t}</b> {e(R['artist'])}", "Out now", e(L["name"]), f"Created by {e(CB['name'])}"]
+    items = [f"<b>{t}</b> {e(R['artist'])}", "Out now", e(L["name"]), " / ".join(e(g) for g in GENRES), f"Created by {e(CB['name'])}"]
     tick = "".join(f"<span>{i}</span>" for i in items * 2)
     slides = "".join(
         f'<li class="slide" aria-roledescription="slide" aria-label="{k} of {n}: {e(rel["title"])}">'
@@ -726,7 +792,7 @@ def index():
         + f'<div class="stage rise" aria-hidden="true"><div class="disc" data-worklet="/js/scratch.js?v={WORKLET_VER}">{circle(C["orange"], ref=True)}</div><div class="sheen"></div><div class="arm"></div>'
         + '<span class="hint up">Drag to scratch · sound on</span></div>'
         + f'<h1 id="name" class="rise d2">{lockup("lockup", C["orange"], C["white"], link="/duck/")}<span class="sr">{e(L["name"])}</span></h1>'
-        + f'<p class="tag up rise d3">Record label · Created by <img class="lm" src="{e(CB["logo"])}" width="24" height="24" alt=""> {e(CB["name"])}</p>'
+        + f'<p class="tag up rise d3">{" · ".join(e(g) for g in GENRES)} label · Created by <img class="lm" src="{e(CB["logo"])}" width="24" height="24" alt=""> {e(CB["name"])}</p>'
         + f'<p class="cta rise d4"><a class="btn up fill magnet" href="#release">Listen to {t} {icon("right")}</a>'
         + f'<a class="btn up magnet" href="/catalog/">Catalog</a></p>'
         + '</div><canvas class="eq" aria-hidden="true"></canvas>'
@@ -757,6 +823,7 @@ def index():
         + ('<section class="sec" id="news" aria-labelledby="news-h">'
            + section_head("In the press", "News", "", "news-h")
            + news_list(NEWS[:3]) + f'<p class="more"><a class="btn up magnet" href="/news/">All news {icon("right")}</a></p></section>' if NEWS else "")
+        + submit_cta()
         # about
         + f'<section class="sec about reveal" aria-labelledby="about-h"><div><p class="kick up">The label</p><h2 id="about-h" class="sr">About {e(L["name"])}</h2>'
         + f'<p>{e(L["intro"])} {e(ROSTER_TXT)}</p></div>'
@@ -948,10 +1015,91 @@ def contact_page():
             + f'<button class="btn up magnet" type="button" data-copy="{L["contact"]}"><span>Copy address</span></button></div></section>'
             + f'<section class="sec about reveal" aria-labelledby="about-h"><div><p class="kick up">The label</p><h2 id="about-h" class="sr">About {e(L["name"])}</h2>'
             + f'<p>{e(L["intro"])} {e(ROSTER_TXT)}</p></div><div class="seal" aria-hidden="true">{circle(C["choco"], ref=True)}</div></section>'
+            + submit_cta("Artists")
             + f'<section class="sec" aria-labelledby="else-h">{section_head("Elsewhere", "Follow", "", "else-h")}<ul class="links-big stagger">{links}</ul></section>')
     graph = [page_ld(path, title, desc, "ContactPage", about={"@id": f"{D}/#label"}, breadcrumb=crumbs_ld(crumbs)),
              dict(LABEL_REF, email=L["contact"], contactPoint={"@type": "ContactPoint", "email": L["contact"], "contactType": "customer support"})]
     return shell(title, desc, path, main, graph, cur="contact", cta=False)
+
+
+def submit_cta(kick="Demo submissions"):
+    return ('<section class="sec cta-band reveal" aria-labelledby="cta-h">'
+            f'<div><p class="kick up">{e(kick)}</p><h2 class="words" id="cta-h">{words("Send us your music")}</h2></div>'
+            f'<div class="cta-side"><p>Made something you think fits {e(L["name"])}? Share a link, your profiles and a few words about the track.</p>'
+            f'<a class="btn up fill magnet" href="/submit/">Submit a track {icon("right")}</a></div></section>')
+
+
+def field(name, label, kind="text", hint="", placeholder="", extra="", plat=False):
+    ph = f' placeholder="{e(placeholder)}"' if placeholder else ""
+    tag = f'<span class="plat" data-plat="{name}" aria-hidden="true"></span>' if plat else ""
+    hid = f"f-{name}"
+    desc = f' aria-describedby="{hid}-h {hid}-e"' if hint else f' aria-describedby="{hid}-e"'
+    if kind == "textarea":
+        ctl = f'<textarea id="{hid}" name="{name}"{ph}{desc}{extra}></textarea>'
+    else:
+        ctl = f'<input id="{hid}" name="{name}" type="{kind}"{ph}{desc}{extra}>'
+    return (f'<div class="field"><div class="lab"><label for="{hid}">{e(label)}</label>{tag}</div>{ctl}'
+            + (f'<small id="{hid}-h">{hint}</small>' if hint else "")
+            + f'<span class="err" id="{hid}-e"></span></div>')
+
+
+def submit_page():
+    path = "/submit/"
+    api = S.get("submit_api", "")
+    title = f"Submit your music | {L['name']}"
+    desc = (f"Send your music to {L['name']}, the independent record label created by {CB['name']}: "
+            "share a listening link, your Instagram, a streaming profile and a few words about the track.")
+    crumbs = [(L["name"], "/"), ("Submit", path)]
+    req = ' required'
+    steps = (
+        '<ol class="stagger">'
+        '<li><b>01</b><strong>Your music</strong><span>A link we can listen to and its genre. Private SoundCloud, Dropbox or Google Drive links work.</span></li>'
+        '<li><b>02</b><strong>About you</strong><span>Your artist name, an e-mail to reply to, your Instagram and one streaming profile.</span></li>'
+        '<li><b>03</b><strong>The story</strong><span>A few lines about the track: the vibe, who made it, where it is headed.</span></li>'
+        '</ol>')
+    form = (
+        f'<form class="subform reveal" id="subform" data-api="{e(api)}" novalidate aria-labelledby="page-h">'
+        '<fieldset><legend><i>01</i> Your music</legend>'
+        + field("title", "Track title", extra=req + ' maxlength="120" autocomplete="off"')
+        + ('<div class="field genre-wrap"><div class="lab"><span class="lbl" id="f-genre-l">Genre</span></div>'
+           '<div class="genres" role="radiogroup" aria-labelledby="f-genre-l" aria-describedby="f-genre-e">'
+           + "".join(f'<label class="pill"><input type="radio" name="genre" value="{e(g)}" required><span>{e(g)}</span></label>' for g in GENRES + ["Other"])
+           + '</div><span class="err" id="f-genre-e"></span></div>')
+        + field("track", "Listening link", "url", "Make sure the link opens without an account or password.",
+                "https://soundcloud.com/…", req + ' maxlength="500" inputmode="url" autocomplete="off"', plat=True)
+        + '</fieldset>'
+        '<fieldset><legend><i>02</i> About you</legend><div class="two">'
+        + field("artist", "Artist name", extra=req + ' maxlength="80" autocomplete="nickname"')
+        + field("email", "E-mail", "email", "", "you@example.com", req + ' maxlength="120" autocomplete="email" inputmode="email"')
+        + '</div><div class="two">'
+        + field("instagram", "Instagram", "text", "", "@yourname", req + ' maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false"')
+        + field("profile", "Streaming profile", "url", "Spotify, Apple Music, SoundCloud, Deezer…",
+                "https://open.spotify.com/artist/…", req + ' maxlength="500" inputmode="url" autocomplete="off"', plat=True)
+        + '</div></fieldset>'
+        '<fieldset><legend><i>03</i> The story</legend>'
+        + field("about", "Description", "textarea", '<span class="count-c" aria-live="off">0 / 1500</span>',
+                "Tell us about the track and about you.", req + ' minlength="20" maxlength="1500" rows="6"')
+        + '<div class="check-wrap"><label class="check"><input type="checkbox" name="rights" required aria-describedby="f-rights-e">'
+        '<span>I own or control the rights to this music.</span></label><span class="err" id="f-rights-e"></span></div>'
+        '</fieldset>'
+        '<div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label></div>'
+        f'<p class="privacy">Your details are only used by {e(L["name"])} to listen to your submission and reply to you.</p>'
+        f'<button class="btn up fill magnet send" type="submit"><span>Send submission</span> {icon("right")}</button>'
+        '<p class="form-msg" role="alert"></p></form>'
+        '<div class="done" id="sub-done" hidden tabindex="-1">'
+        '<span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>'
+        '<h2>Thanks, <span data-name></span>.</h2>'
+        f'<p>Your track is in. If it is a fit for {e(L["name"])}, we will reply by e-mail.</p>'
+        f'<p class="more"><button class="btn up" type="button" data-again>Send another track</button><a class="btn up" href="/catalog/">Explore the catalog</a></p></div>'
+        f'<noscript><p class="lead">This form needs JavaScript. You can also e-mail your link to <a href="mailto:{L["contact"]}">{L["contact"]}</a>.</p></noscript>')
+    main = (f'<section class="sec page" aria-labelledby="page-h">{crumbs_html(crumbs)}'
+            + section_head("Demo submissions", "Submit",
+                           f"Send your music to {e(L['name'])}. We release {e(GENRE_TXT)}. Fill in the form below: it takes about two minutes.", "page-h", level="h1")
+            + f'<div class="subgrid"><aside class="steps" aria-label="What we need">{steps}'
+            f'<p class="mute">Prefer e-mail? Write to <a href="mailto:{L["contact"]}">{L["contact"]}</a>.</p></aside>'
+            + f'<div>{form}</div></div></section>')
+    graph = [page_ld(path, title, desc, about={"@id": f"{D}/#label"}, breadcrumb=crumbs_ld(crumbs)), LABEL_REF]
+    return shell(title, desc, path, main, graph, cur="submit", cta=False)
 
 
 def notfound():
@@ -983,7 +1131,7 @@ def main():
     if DIST.exists():
         shutil.rmtree(DIST)
     DIST.mkdir()
-    pages = {"/": index(), "/catalog/": catalog_page(), "/artists/": artists_page(), "/contact/": contact_page()}
+    pages = {"/": index(), "/catalog/": catalog_page(), "/artists/": artists_page(), "/contact/": contact_page(), "/submit/": submit_page()}
     if NEWS:
         pages["/news/"] = news_page()
     for rel in RELEASES:

@@ -345,4 +345,134 @@
       if (a) location.href = a.href;
     });
   }
+
+  /* ---------- music submission form ---------- */
+  const form = $('#subform');
+  if (form) {
+    const api = form.dataset.api, t0 = Date.now();
+    const msg = $('.form-msg', form), btn = $('.send', form), btnLabel = $('span', btn), done = $('#sub-done');
+    const els = form.elements;
+    const PLAT = [['soundcloud', 'SoundCloud'], ['dropbox', 'Dropbox'], ['drive.google', 'Google Drive'], ['docs.google', 'Google Drive'],
+      ['wetransfer', 'WeTransfer'], ['we.tl', 'WeTransfer'], ['youtu', 'YouTube'], ['spotify', 'Spotify'], ['music.apple', 'Apple Music'],
+      ['deezer', 'Deezer'], ['bandcamp', 'Bandcamp'], ['tidal', 'Tidal'], ['audiomack', 'Audiomack'], ['disco.ac', 'DISCO'],
+      ['untitled.stream', 'untitled'], ['1drv', 'OneDrive'], ['onedrive', 'OneDrive'], ['box.com', 'Box'], ['icloud', 'iCloud']];
+    const handle = v => v.trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').split(/[/?#]/)[0];
+    const MSG = {
+      title: 'Add the track title.',
+      genre: 'Pick the genre that fits best.',
+      track: 'Add a link we can listen to, starting with https://',
+      artist: 'Add your artist name.',
+      email: 'Add a valid e-mail address so we can reply.',
+      instagram: 'Add your Instagram handle, like @yourname.',
+      profile: 'Add a link to one of your streaming profiles, starting with https://',
+      about: 'Tell us a bit more (at least 20 characters).',
+      rights: 'Please confirm you own or control the rights.',
+    };
+    const NAMES = Object.keys(MSG);
+    const box = name => {
+      const el = name === 'genre' ? $('.genres', form) : els[name];
+      return el && el.closest('.field, .check-wrap');
+    };
+    const valid = name => {
+      if (name === 'genre') return !!form.querySelector('input[name=genre]:checked');
+      const el = els[name];
+      if (!el.checkValidity()) return false;
+      if (name === 'instagram') return /^[A-Za-z0-9._]{1,30}$/.test(handle(el.value));
+      if (name === 'about') return el.value.trim().length >= 20;
+      if (el.type === 'url') return /^https?:\/\/[^\s/$.?#][^\s]*\.[^\s]{2,}/i.test(el.value.trim());
+      return true;
+    };
+    const check = name => {
+      const ok = valid(name), f = box(name), err = f && $('.err', f);
+      if (f) f.classList.toggle('bad', !ok);
+      if (err) err.textContent = ok ? '' : MSG[name];
+      if (name !== 'genre') els[name].setAttribute('aria-invalid', String(!ok));
+      return ok;
+    };
+    $$('input[type=url]', form).forEach(inp => {
+      const tag = $(`[data-plat="${inp.name}"]`, form);
+      const show = () => {
+        const v = inp.value.toLowerCase(), p = PLAT.find(([k]) => v.includes(k));
+        if (tag) { tag.textContent = p ? p[1] : ''; tag.classList.toggle('on', !!p); }
+      };
+      inp.addEventListener('input', show);
+      inp.addEventListener('blur', () => {
+        const v = inp.value.trim();
+        if (v && !/^https?:\/\//i.test(v) && /\.\w/.test(v)) inp.value = 'https://' + v;
+        show();
+      });
+    });
+    els.instagram.addEventListener('blur', () => { const h = handle(els.instagram.value); if (h) els.instagram.value = '@' + h; });
+    const counter = $('.count-c', form);
+    const count = () => { if (counter) counter.textContent = `${els.about.value.length} / ${els.about.maxLength}`; };
+    els.about.addEventListener('input', count);
+    count();
+    NAMES.forEach(name => {
+      const list = name === 'genre' ? $$('input[name=genre]', form) : [els[name]];
+      list.forEach(el => {
+        el.addEventListener(el.type === 'radio' || el.type === 'checkbox' ? 'change' : 'blur', () => {
+          if (el.type === 'radio' || el.type === 'checkbox' || el.value) check(name);
+        });
+        el.addEventListener('input', () => { const f = box(name); if (f && f.classList.contains('bad')) check(name); });
+      });
+    });
+    const busy = on => {
+      btn.disabled = on;
+      btnLabel.textContent = on ? 'Sending…' : 'Send submission';
+    };
+    form.addEventListener('submit', async ev => {
+      ev.preventDefault();
+      msg.textContent = '';
+      const bad = NAMES.filter(name => !check(name));
+      if (bad.length) {
+        const first = bad[0] === 'genre' ? $('input[name=genre]', form) : els[bad[0]];
+        first.focus();
+        msg.textContent = bad.length === 1 ? 'One field needs your attention.' : `${bad.length} fields need your attention.`;
+        return;
+      }
+      if (!api) { msg.textContent = 'Submissions are offline right now. Please e-mail us instead.'; return; }
+      const data = {
+        kind: 'submission', elapsed: Date.now() - t0, website: els.website.value,
+        title: els.title.value, genre: (form.querySelector('input[name=genre]:checked') || {}).value,
+        track: els.track.value, artist: els.artist.value, email: els.email.value,
+        instagram: els.instagram.value, profile: els.profile.value, about: els.about.value, rights: els.rights.checked,
+      };
+      busy(true);
+      try {
+        const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 20000);
+        let j;
+        try {
+          const r = await fetch(api, { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, signal: ctl.signal });
+          j = await r.json();
+        } finally { clearTimeout(tm); }
+        if (!j || !j.ok) throw j || {};
+        $('[data-name]', done).textContent = data.artist.trim();
+        form.hidden = true;
+        done.hidden = false;
+        done.focus({ preventScroll: true });
+        done.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+      } catch (e) {
+        const why = e && e.err;
+        msg.textContent = why === 'limit' ? 'You have sent several tracks recently. Please try again in a few hours.'
+          : why === 'fast' ? 'That was quick! Please check your details and send again.'
+          : why === 'invalid' ? 'Some fields look wrong. Please check them and try again.'
+          : why === 'busy' ? 'We are receiving a lot of submissions. Please try again in a moment.'
+          : 'Something went wrong. Please try again, or e-mail us.';
+        if (why === 'invalid' && Array.isArray(e.fields)) e.fields.forEach(n => { if (MSG[n]) { const f = box(n); if (f) { f.classList.add('bad'); $('.err', f).textContent = MSG[n]; } } });
+      } finally {
+        busy(false);
+      }
+    });
+    const again = $('[data-again]');
+    if (again) again.addEventListener('click', () => {
+      ['title', 'track', 'about'].forEach(n => { els[n].value = ''; });
+      $$('input[name=genre]', form).forEach(r => { r.checked = false; });
+      els.rights.checked = false;
+      $$('[data-plat="track"]', form).forEach(t => t.classList.remove('on'));
+      count();
+      done.hidden = true;
+      form.hidden = false;
+      els.title.focus();
+    });
+  }
 })();
