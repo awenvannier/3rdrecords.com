@@ -44,9 +44,10 @@ C = {"choco": "#512321", "orange": "#F6A10E", "ink": "#1D1D1B", "white": "#FEFEF
 CB = L.get("createdBy")
 NAMES = ", ".join(a["name"] for a in ARTISTS[:-1]) + " and " + ARTISTS[-1]["name"]
 TITLE = f"{L['name']} | Independent Record Label"
-DESC = (f"{L['name']} is an independent record label created by {CB['name']}, with {NAMES}. "
+DESC = (f"{L['name']} is an independent record label created by {CB['name']}. Artists featured on its releases: {NAMES}. "
         f"Latest release: “{R['title']}” by {R['artist']}".rstrip(".") + ".")
-ROSTER_TXT = f"The roster includes {NAMES}, and the catalog counts {len(RELEASES)} releases so far."
+ROSTER_TXT = f"Artists who have taken part in its releases include {NAMES}, and the catalog counts {len(RELEASES)} releases so far."
+POOL_TXT = f"Not an exclusive roster: these are the artists who have taken part in {L['name']} projects."
 
 
 def rel_url(rel):
@@ -470,7 +471,7 @@ def jsonld():
     ]
     for a in ARTISTS:
         graph.append({"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"],
-                      "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", []))), "genre": a.get("genre"), "recordLabel": {"@id": lid}})
+                      "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", []))), "genre": a.get("genre")})
     graph += [album_node(rel) for rel in RELEASES]
 
     return json.dumps({"@context": "https://schema.org", "@graph": [clean(g) for g in graph]},
@@ -731,7 +732,7 @@ def index():
            + f'<p class="more"><a class="btn up magnet" href="/catalog/">Full catalog {icon("right")}</a></p></section>' if PAST else "")
         # artists
         + '<section class="sec" id="artists" aria-labelledby="artists-h">'
-        + section_head("Roster", "Artists", f"The artists releasing music on {e(L['name'])}.", "artists-h")
+        + section_head("Artist pool", "Artists", e(POOL_TXT), "artists-h")
         + f'<ul class="roster stagger">{"".join(artist_card(a) for a in ARTISTS)}</ul>'
         + f'<p class="more"><a class="btn up magnet" href="/artists/">All artists {icon("right")}</a></p></section>'
         # news
@@ -826,17 +827,17 @@ def release_page(rel):
 def artists_page():
     path = "/artists/"
     title = f"Artists | {L['name']}"
-    desc = f"The {L['name']} roster: {NAMES}. Profiles, releases and official links."
+    desc = f"Artists who have taken part in {L['name']} projects: {NAMES}. Profiles, releases and official links."
     crumbs = [(L["name"], "/"), ("Artists", path)]
     main = (f'<section class="sec page" aria-labelledby="page-h">{crumbs_html(crumbs)}'
-            + section_head("Roster", "Artists", f"{len(ARTISTS)} artists release music on {e(L['name'])}. Open a profile for releases, press and official links.", "page-h", level="h1")
+            + section_head("Artist pool", "Artists", f"{len(ARTISTS)} artists have taken part in {e(L['name'])} projects. They are not exclusively signed to the label. Open a profile for releases, press and official links.", "page-h", level="h1")
             + f'<ul class="roster stagger">{"".join(artist_card(a, "h2") for a in ARTISTS)}</ul></section>')
     graph = [page_ld(path, title, desc, "CollectionPage", about={"@id": f"{D}/#label"}, breadcrumb=crumbs_ld(crumbs),
                      mainEntity={"@type": "ItemList", "numberOfItems": len(ARTISTS), "itemListElement": [
                          {"@type": "ListItem", "position": k, "url": f"{D}{artist_url(a)}", "item": {"@id": a["id"]}}
                          for k, a in enumerate(ARTISTS, 1)]}), LABEL_REF] + [
         {"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"], "genre": a.get("genre"),
-         "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", []))), "recordLabel": {"@id": f"{D}/#label"}} for a in ARTISTS]
+         "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", [])))} for a in ARTISTS]
     return shell(title, desc, path, main, graph, cur="artists")
 
 
@@ -846,8 +847,10 @@ def artist_page(a):
     press = [n for n in NEWS if n.get("artist") == a["name"]]
     founder = CB and a["name"] == CB["name"]
     title = f"{a['name']} | {L['name']}"
-    desc = (f"{a['name']}, {a['role'][0].lower() + a['role'][1:]}, on {L['name']}"
-            + (f", the label {a['name']} created" if founder else "")
+    first = a["role"].split(" ")[0]
+    role = (first.lower() + a["role"][len(first):]) if first.lower() in ("producer", "lo-fi", "lofi", "singer", "composer", "beatmaker", "rapper", "dj") else a["role"]
+    desc = (f"{a['name']}, {role}, "
+            + (f"creator of {L['name']}" if founder else f"featured on {L['name']} releases")
             + (f". Releases: {', '.join('“' + r['title'] + '”' for r in rels)}." if rels else ".")
             + " Official links and press.")
     links = [(a.get("linkLabel", "Official website"), a["url"])]
@@ -870,7 +873,7 @@ def artist_page(a):
         '<section class="sec page profile" aria-labelledby="page-h">'
         + f'<div class="art tilt portrait">{img}{vid}</div><div>'
         + crumbs_html(crumbs)
-        + f'<p class="kick up">{"Founder · " if founder else ""}{e(L["name"])} artist</p>'
+        + f'<p class="kick up">{"Founder of " + e(L["name"]) if founder else "Featured on " + e(L["name"]) + " releases"}</p>'
         + f'<h1 class="words load" id="page-h">{words(a["name"])}</h1>'
         + f'<p class="role">{" · ".join(meta)}</p>'
         + f'<p class="meta up">{len(rels)} release{"s" if len(rels) != 1 else ""} on {e(L["name"])}'
@@ -879,13 +882,12 @@ def artist_page(a):
         + (f'<section class="sec" aria-labelledby="rel-h">{section_head("Discography", "Releases", on_label, "rel-h")}'
            f'<ul class="grid stagger">{"".join(release_card(r) for r in rels)}</ul></section>' if rels else "")
         + (f'<section class="sec" aria-labelledby="press-h">{section_head("In the press", "Press", "", "press-h")}{news_list(press)}</section>' if press else "")
-        + (f'<section class="sec" aria-labelledby="oth-h">{section_head("Roster", "More artists", "", "oth-h")}'
+        + (f'<section class="sec" aria-labelledby="oth-h">{section_head("Artist pool", "More artists", e(POOL_TXT), "oth-h")}'
            f'<ul class="roster stagger">{"".join(artist_card(x) for x in others)}</ul></section>' if others else "")
     )
     person = clean({"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"], "description": a["role"],
                     "image": a["image"] if a["image"].startswith("http") else f"{D}{a['image']}", "genre": a.get("genre"),
                     "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", []) + ([f"{D}/portfolio/leadmajor/"] if founder else []))),
-                    "recordLabel": {"@id": f"{D}/#label"},
                     "album": [{"@id": f"{D}{rel_url(r)}#album"} for r in rels] or None})
     graph = [page_ld(path, title, desc, "ProfilePage", mainEntity={"@id": a["id"]}, breadcrumb=crumbs_ld(crumbs)),
              person, LABEL_REF] + [album_node(r) for r in rels]

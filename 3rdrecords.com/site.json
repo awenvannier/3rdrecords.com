@@ -22,7 +22,7 @@
       "3rd Records label",
       "3rdrecords"
     ],
-    "disambiguatingDescription": "Independent record label created by Lead Major, releasing liid., Djouher and Lead Major. Not related to Third Man Records."
+    "disambiguatingDescription": "Independent record label created by Lead Major, releasing liid., Djouher, Swink, nytø and Lead Major. Not related to Third Man Records."
   },
   "artists": [
     {
@@ -52,6 +52,43 @@
         "https://musicbrainz.org/artist/3ea4e8a3-4b60-4fb3-a5ea-03ee4aca0e32",
         "https://www.discogs.com/artist/11357834-Liid",
         "https://www.wikidata.org/wiki/Q141470221"
+      ]
+    },
+    {
+      "name": "Swink",
+      "slug": "swink",
+      "url": "https://open.spotify.com/artist/1pvbdPT4qv8egDvkcOhBN0",
+      "id": "https://3rdrecords.com/#swink",
+      "role": "Producer from France",
+      "linkLabel": "Spotify",
+      "image": "https://i.scdn.co/image/ab6761610000e5eb55b303295764130ae4a38a1d",
+      "position": "50% 50%",
+      "alt": "Swink sitting on a sofa in a warm orange room, holding an electric guitar, a synthesizer beside him.",
+      "sameAs": [
+        "https://musicbrainz.org/artist/a7d16e90-4fc4-4643-ad60-78c8b18d2bb8",
+        "https://www.discogs.com/artist/6552267",
+        "https://www.instagram.com/swiinnk/",
+        "https://soundcloud.com/swinkk",
+        "https://www.deezer.com/artist/1082657",
+        "https://tidal.com/artist/5823639"
+      ]
+    },
+    {
+      "name": "nytø",
+      "slug": "nyto",
+      "url": "https://open.spotify.com/artist/1HZSZHE4C1vJymt4CWEfHH",
+      "id": "https://3rdrecords.com/#nyto",
+      "role": "Lo-fi beatmaker",
+      "linkLabel": "Spotify",
+      "image": "https://i.scdn.co/image/ab6761610000e5eb4be31b460b75e0f18d7847a2",
+      "position": "50% 50%",
+      "alt": "Black and white photo of nytø playing an electric guitar.",
+      "sameAs": [
+        "https://musicbrainz.org/artist/64a70155-4c34-4bc3-9a60-6bd7f1d37a8c",
+        "https://www.discogs.com/artist/16060638",
+        "https://music.apple.com/artist/1597571655",
+        "https://www.deezer.com/artist/152639122",
+        "https://tidal.com/artist/29478209"
       ]
     },
     {
