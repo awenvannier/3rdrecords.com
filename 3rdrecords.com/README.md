@@ -2,7 +2,7 @@
 
 Site statique du label 3rd Records, sans traceur ni cookie.
 
-Pages générées : accueil, `/catalog/`, `/releases/<slug>/`, `/artists/`, `/artists/<slug>/`, `/news/`, `/submit/`, `/contact/` (+ `/duck/` et le portfolio).
+Pages générées : accueil, `/catalog/`, `/releases/<slug>/`, `/artists/`, `/artists/<slug>/`, `/news/`, `/submit/`, `/contact/`, `/legal/` (+ `/duck/` et le portfolio).
 Le script `js/site.js` ajoute les interactions : menu mobile, apparitions au scroll, vinyle à « scratcher », égaliseur, carrousel du catalogue (flèches du clavier), filtre par artiste, lecteurs Spotify chargés au clic, copie de l'adresse e-mail. Toutes les pages restent lisibles sans JavaScript.
 
 - `site.json` : le contenu (texte du label, artistes, dernière sortie et liens d'écoute).
@@ -28,3 +28,9 @@ Les pochettes et photos d'artistes sont servies depuis le site de l'artiste (djo
 - Champs : titre, genre (Pop, Bedroom pop, Lofi, Hip-hop, Other), lien d'écoute, nom d'artiste, e-mail, Instagram, profil streaming, description, case droits.
 - Anti-spam : champ piège invisible, envoi refusé avant 4 s, 3 envois max par e-mail sur 6 h, 60 envois max par heure.
 - Code du script : `scoreboard/Code.gs`. Après modification : Déployer → Gérer les déploiements → modifier → Nouvelle version.
+
+## Mentions legales (3rdrecords.com/legal/)
+
+- Les informations (SIRET, forme juridique, RCS, code APE, hebergeur, duree de conservation des submissions) sont dans `site.json` -> `legal`. La date « Last updated » vient de `legal.updated`.
+- La page couvre : mentions legales, politique de submissions (rien n'est utilise sans accord ecrit, suppression apres 12 mois), vie privee (Google Sheet + boite mail, droits RGPD, pas de tracker, lecteurs Spotify au clic, scoreboard du jeu public) et droits sur les contenus.
+- Lien dans le pied de page de toutes les pages et sous le formulaire de submissions.

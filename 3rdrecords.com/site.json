@@ -285,5 +285,15 @@
       "artist": "Djouher",
       "summary": "A feature on Kingdom, Djouher’s debut EP, and its themes of personal growth and vulnerability."
     }
-  ]
+  ],
+  "legal": {
+    "entity": "3rd Records",
+    "form": "Entreprise individuelle",
+    "siren": "892 917 733",
+    "rcs": "RCS Rouen",
+    "ape": "5920Z (Enregistrement sonore et édition musicale)",
+    "host": "GitHub Pages, GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA",
+    "updated": "2026-09-17",
+    "retention_months": 12
+  }
 }

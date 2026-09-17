@@ -320,7 +320,7 @@ img,svg,video{display:block;max-width:100%}
 @media (max-width:860px){.sync{grid-template-columns:1fr}.deck{position:relative;top:0}}
 
 /* discography */
-.disco{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,40px)}
+.disco{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,3vw,40px) clamp(20px,4vw,56px)}
 .disco h3{font:700 22px/1.2 var(--display);padding-bottom:12px;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;align-items:baseline}
 .disco h3 small{font-family:var(--mono);font-size:12px;color:var(--faint);font-weight:400}
 .disco a{display:grid;grid-template-columns:44px minmax(0,1fr) 16px;gap:10px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line)}
@@ -767,7 +767,7 @@ def page(P, I, fonts, domain, ROOT):
     disco = []
     for g in P["discography"]:
         rows = "".join(
-            f'<li><a href="{("https://open.spotify.com/album/" + it[4]) if len(it) > 4 and it[4] else ("https://open.spotify.com/search/" + urllib.parse.quote(it[1] + " " + it[2]))}" rel="noopener" target="_blank">'
+            f'<li><a href="{e(it[5]) if len(it) > 5 and it[5] else ("https://open.spotify.com/album/" + it[4]) if len(it) > 4 and it[4] else ("https://open.spotify.com/search/" + urllib.parse.quote(it[1] + " " + it[2]))}" rel="noopener" target="_blank">'
             f'<span class="y">{e(it[0])}</span><span><span class="dt">{e(it[1])}</span><span class="da">{e(it[2])}</span></span>'
             f'<span class="ar" aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a></li>'
             for it in g["items"])
@@ -934,7 +934,7 @@ def page(P, I, fonts, domain, ROOT):
 <section class="sec" id="discography" aria-labelledby="disco-h">
   <div class="wrap">
     <div class="sec-head reveal"><div><p class="label mono up">Everything released</p><h2 class="h2" id="disco-h">Discography</h2></div>
-      <p class="dim">{total} releases since 2018 · listen on Spotify</p></div>
+      <p class="dim">{total} releases since 2018 · listen on Spotify &amp; SoundCloud</p></div>
     <div class="disco">{''.join(disco)}</div>
   </div>
 </section>

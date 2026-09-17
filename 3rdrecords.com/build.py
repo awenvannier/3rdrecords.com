@@ -431,6 +431,22 @@ main,.foot{position:relative;z-index:1}
 .check input:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
 .bad .check input{border-color:#ff8a6b}
 .hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.prose{max-width:46rem}
+.prose h2{font-size:clamp(2.25rem,6vw,3.5rem);margin-bottom:1.25rem}
+.prose p{margin:0 0 1.1rem;color:var(--soft);max-width:40em}
+.prose p.mute{color:var(--grey)}
+.prose a{text-underline-offset:.2em}
+.prose a:hover{color:var(--orange)}
+.bullets{display:grid;gap:.9rem;margin:0;max-width:40em}
+.bullets li{position:relative;padding-left:1.5rem;color:var(--soft)}
+.bullets li::before{content:"";position:absolute;left:0;top:.65em;width:.5rem;height:1px;background:var(--orange)}
+.bullets strong{font-weight:500;color:var(--white)}
+.facts{display:grid;gap:1px;margin:0;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.facts>div{display:grid;gap:.35rem;padding:1.1rem 1.25rem;background:var(--deep)}
+.facts dt{color:var(--grey)}
+.facts dd{margin:0}
+.legal a{text-underline-offset:.2em}
+.legal a:hover{color:var(--orange)}
 .privacy{margin:0 0 1.5rem;color:var(--grey);font-size:.875rem;max-width:36em}
 .send{min-height:3.5rem;padding:0 2.1rem}
 .send:disabled{opacity:.6;cursor:wait}
@@ -487,7 +503,7 @@ html:not(.js) .reveal,html:not(.js) .stagger>*,html:not(.js) .words:not(.load) .
 .open .nav a{opacity:1;transform:none}
 .open .nav a:nth-child(2){transition-delay:.05s}.open .nav a:nth-child(3){transition-delay:.1s}.open .nav a:nth-child(4){transition-delay:.15s}.open .nav a:nth-child(5){transition-delay:.2s}
 }
-@media (min-width:40rem){.bar i{display:block}.two{grid-template-columns:1fr 1fr}}
+@media (min-width:40rem){.bar i{display:block}.two{grid-template-columns:1fr 1fr}.facts{grid-template-columns:1fr 1fr}.facts>div:last-child:nth-child(odd){grid-column:1/-1}}
 @media (max-width:64rem){.top .brand span{display:none}}
 @media (min-width:48rem){.slide{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}}
 @media (min-width:60rem){
@@ -671,7 +687,7 @@ def footer(cta=True):
         + f'<div><p class="fh up">Artists</p><ul>{arts}</ul></div>'
         + f'<div><p class="fh up">Elsewhere</p><ul>{else_}</ul></div>'
         + f'<div><p class="fh up">Contact</p><ul>{more}</ul></div></div>'
-        + f'<div class="legal up"><span>© {year} {e(L["name"])} · Independent record label created by {e(CB["name"])}</span>'
+        + f'<div class="legal up"><span>© {year} {e(L["name"])} · Independent record label created by {e(CB["name"])} · <a href="/legal/">Legal notice &amp; privacy</a></span>'
         + f'<button type="button" data-totop>Back to top {icon("up")}</button></div>'
         + '</footer>')
 
@@ -1083,7 +1099,8 @@ def submit_page():
         '<span>I own or control the rights to this music.</span></label><span class="err" id="f-rights-e"></span></div>'
         '</fieldset>'
         '<div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label></div>'
-        f'<p class="privacy">Your details are only used by {e(L["name"])} to listen to your submission and reply to you.</p>'
+        f'<p class="privacy">Your details are only used by {e(L["name"])} to listen to your submission and reply to you. '
+        f'Your track stays yours: nothing is used without your written agreement. <a href="/legal/">Submissions &amp; privacy</a>.</p>'
         f'<button class="btn up fill magnet send" type="submit"><span>Send submission</span> {icon("right")}</button>'
         '<p class="form-msg" role="alert"></p></form>'
         '<div class="done" id="sub-done" hidden tabindex="-1">'
@@ -1100,6 +1117,72 @@ def submit_page():
             + f'<div>{form}</div></div></section>')
     graph = [page_ld(path, title, desc, about={"@id": f"{D}/#label"}, breadcrumb=crumbs_ld(crumbs)), LABEL_REF]
     return shell(title, desc, path, main, graph, cur="submit", cta=False)
+
+
+def legal_page():
+    path = "/legal/"
+    G = S.get("legal", {})
+    months = G.get("retention_months", 12)
+    title = f"Legal notice & privacy | {L['name']}"
+    desc = (f"Legal notice for {L['name']}, how the label handles the details sent through the site, "
+            "and what happens to the music you send through the submission form.")
+    crumbs = [(L["name"], "/"), ("Legal", path)]
+    rows = [("Publisher", e(G.get("entity", L["name"]))),
+            ("Legal form", e(G.get("form", ""))),
+            ("SIREN", e(G.get("siren", ""))),
+            ("Trade register", e(G.get("rcs", ""))),
+            ("Business code", e(G.get("ape", ""))),
+            ("Contact", f'<a href="mailto:{L["contact"]}">{L["contact"]}</a>'),
+            ("Hosting", e(G.get("host", "")))]
+    table = "".join(f'<div><dt class="up">{k}</dt><dd>{v}</dd></div>' for k, v in rows if v)
+    main = (
+        f'<section class="sec page" aria-labelledby="page-h">{crumbs_html(crumbs)}'
+        + section_head("Legal", "Legal notice",
+                       "Who runs this site, what we do with the details you send us, and what happens to the music you submit.",
+                       "page-h", level="h1")
+        + f'<dl class="facts reveal">{table}</dl></section>'
+        # ---- submissions
+        + '<section class="sec prose reveal" aria-labelledby="sub-h">'
+        + f'<p class="kick up">Music submissions</p><h2 id="sub-h">Your music stays yours</h2>'
+        + f'<p>Tracks sent through <a href="/submit/">the submission form</a> are kept for one reason only: so that {e(L["name"])} '
+        'can listen to them and talk about them internally.</p>'
+        + '<ul class="bullets">'
+        '<li>Nothing is published, released, remixed, sampled, used in a playlist or shared outside the label until we have '
+        'talked with you and you have given your written agreement.</li>'
+        '<li>You keep every right on your music. Sending a track gives us no licence and no exclusivity.</li>'
+        f'<li>Submissions we do not follow up on are deleted after {months} months, and sooner if you ask.</li>'
+        f'<li>You can ask us to delete your submission at any time by writing to <a href="mailto:{L["contact"]}">{L["contact"]}</a>.</li>'
+        '</ul></section>'
+        # ---- privacy
+        + '<section class="sec prose reveal" aria-labelledby="priv-h">'
+        + '<p class="kick up">Privacy</p><h2 id="priv-h">Your details</h2>'
+        + '<p>The submission form asks for your artist name, e-mail address, Instagram handle, a streaming profile, '
+        'a listening link and a short description. We use them to listen to your track and to reply to you. '
+        'Nothing is sold, shared with third parties or used for advertising.</p>'
+        + '<ul class="bullets">'
+        '<li><strong>Where it is stored:</strong> a private Google Sheet and the label mailbox, both on Google Workspace. '
+        'Only the label has access.</li>'
+        f'<li><strong>How long:</strong> {months} months for submissions we do not follow up on. If we work together, '
+        'the messages are kept as part of that relationship.</li>'
+        f'<li><strong>Your rights:</strong> you can ask for a copy, a correction or the deletion of your details at '
+        f'<a href="mailto:{L["contact"]}">{L["contact"]}</a>. You can also complain to the CNIL (cnil.fr).</li>'
+        '<li><strong>No tracking:</strong> this site has no analytics, no advertising and no tracking cookies. '
+        'Fonts and images are served from the site itself.</li>'
+        '<li><strong>Embedded players:</strong> Spotify players only load when you click Play. From that moment Spotify '
+        'receives your IP address and may set its own cookies, under its own policy.</li>'
+        '<li><strong>Hidden game:</strong> if you send a score to the duck game scoreboard, the name you type and your '
+        'score are shown publicly on that page. Pick a nickname if you prefer.</li>'
+        '<li><strong>Server logs:</strong> the host keeps standard technical logs of page requests, as any web server does.</li>'
+        '</ul></section>'
+        # ---- content
+        + '<section class="sec prose reveal" aria-labelledby="ip-h">'
+        + '<p class="kick up">Content</p><h2 id="ip-h">Music, artwork and names</h2>'
+        + f'<p>Recordings, artwork, photos, logos and texts on this site belong to {e(L["name"])}, to its artists or to '
+        'their respective owners, and cannot be reused without permission. If you think something here should not be '
+        f'online, write to <a href="mailto:{L["contact"]}">{L["contact"]}</a> and we will take a look.</p>'
+        + f'<p class="mute up">Last updated {fmt_date(G.get("updated", TODAY))}</p></section>')
+    graph = [page_ld(path, title, desc, about={"@id": f"{D}/#label"}, breadcrumb=crumbs_ld(crumbs)), LABEL_REF]
+    return shell(title, desc, path, main, graph, cur="legal", cta=False, robots="index,follow")
 
 
 def notfound():
@@ -1131,7 +1214,7 @@ def main():
     if DIST.exists():
         shutil.rmtree(DIST)
     DIST.mkdir()
-    pages = {"/": index(), "/catalog/": catalog_page(), "/artists/": artists_page(), "/contact/": contact_page(), "/submit/": submit_page()}
+    pages = {"/": index(), "/catalog/": catalog_page(), "/artists/": artists_page(), "/contact/": contact_page(), "/submit/": submit_page(), "/legal/": legal_page()}
     if NEWS:
         pages["/news/"] = news_page()
     for rel in RELEASES:
