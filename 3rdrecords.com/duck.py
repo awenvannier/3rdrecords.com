@@ -33,7 +33,7 @@ h1{font:400 clamp(64px,14vw,170px)/.9 Avigea,Georgia,serif;color:var(--orange)}
 .btn:hover,.btn:focus-visible{background:var(--orange);border-color:var(--orange);color:var(--ink)}
 .btn:active{transform:scale(.96)}
 :focus-visible{outline:2px solid var(--orange);outline-offset:3px}
-.layer{position:fixed;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+.layer{position:fixed;inset:0;z-index:4;pointer-events:none;overflow:hidden}.arena{position:absolute;left:0;top:0;pointer-events:none}
 .duck{position:absolute;left:0;top:0;border:0;background:none;padding:0;cursor:pointer;pointer-events:auto;will-change:transform;filter:drop-shadow(0 8px 12px rgba(0,0,0,.35));-webkit-tap-highlight-color:transparent}
 .duck svg{display:block;width:100%;height:auto;transform-origin:50% 80%}
 .duck.q svg{animation:quack .35s cubic-bezier(.2,.7,.2,1)}
@@ -52,7 +52,7 @@ CSS = "".join(l.strip() for l in CSS.splitlines())
 JS = r"""
 (() => {
 const $ = s => document.querySelector(s);
-const layer = $('#layer'), menu = $('#menu'), scoreEl = $('#score'), timeEl = $('#time'), bestEl = $('#best');
+const layer = $('#arena'), menu = $('#menu'), scoreEl = $('#score'), timeEl = $('#time'), bestEl = $('#best');
 const SVG = $('#duck-tpl').innerHTML;
 const ROUND = 30, MAX = 22, API = '__API__';
 const form = $('#save'), nameIn = $('#name'), board = $('#board'), lb = $('#lb'), note = $('#lbnote');
@@ -63,6 +63,28 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let ducks = [], raf = 0, last = 0, score = 0, left = ROUND, playing = false, tick = 0, spawnT = 0, ac = null;
 let best = +load('3rd-duck-best', 0) || 0;
 bestEl.textContent = best;
+
+/* Fixed logical arena (1200x750 landscape, 750x1200 portrait: same area) scaled to fit the window.
+   Duck sizes, speeds and bounds live in arena units, so zooming the page or resizing
+   the window only changes the scale, never how hard the game is. */
+const A = { w: 1200, h: 750, k: 1 };
+const hud = $('.hud');
+function fit(){
+  const top = hud.offsetHeight, W = innerWidth, H = Math.max(1, innerHeight - top);
+  const pw = A.w, ph = A.h;
+  const portrait = H > W * 1.1;
+  A.w = portrait ? 750 : 1200; A.h = portrait ? 1200 : 750;
+  A.k = Math.min(W / A.w, H / A.h);
+  layer.style.width = A.w * A.k + 'px'; layer.style.height = A.h * A.k + 'px';
+  layer.style.left = (W - A.w * A.k) / 2 + 'px'; layer.style.top = top + (H - A.h * A.k) / 2 + 'px';
+  ducks.forEach(d => {
+    d.x = d.x / pw * A.w; d.y = d.y / ph * A.h;
+    d.x = Math.min(Math.max(0, d.x), A.w - d.size); d.y = Math.min(Math.max(0, d.y), A.h - d.size * .85);
+    d.el.style.width = d.size * A.k + 'px'; place(d);
+  });
+}
+addEventListener('resize', fit);
+fit();
 
 function quack(pitch){
   try {
@@ -105,11 +127,11 @@ function spawn(x, y){
   el.innerHTML = SVG;
   const size = gold ? 60 : 64 + Math.random() * 56;
   const speed = 1 + (ROUND - left) / ROUND * .9;
-  if (x == null) { x = Math.random() * (innerWidth - size); y = innerHeight + 10; }
+  if (x == null) { x = Math.random() * (A.w - size); y = A.h - size * .85; }
   const d = { el, size, x, y, t: Math.random() * 6, gold,
     vx: (Math.random() < .5 ? -1 : 1) * (110 + Math.random() * 150) * speed,
     vy: -(200 + Math.random() * 260) * speed };
-  el.style.width = size + 'px';
+  el.style.width = size * A.k + 'px';
   el.addEventListener('pointerdown', ev => {
     ev.preventDefault();
     quack(gold ? 1.5 : .85 + Math.random() * .4);
@@ -131,18 +153,18 @@ function spawn(x, y){
 function remove(d){ d.el.remove(); ducks = ducks.filter(x => x !== d); }
 function place(d){
   const flip = d.vx < 0 ? 1 : -1, wob = reduce ? 0 : Math.sin(d.t) * 9;
-  d.el.style.transform = `translate(${d.x.toFixed(1)}px,${d.y.toFixed(1)}px) scaleX(${flip}) rotate(${wob.toFixed(1)}deg)`;
+  d.el.style.transform = `translate(${(d.x * A.k).toFixed(1)}px,${(d.y * A.k).toFixed(1)}px) scaleX(${flip}) rotate(${wob.toFixed(1)}deg)`;
 }
 function frame(now){
   const dt = Math.min(.05, last ? (now - last) / 1000 : .016); last = now;
-  const W = innerWidth, H = innerHeight;
+  const W = A.w, H = A.h;
   for (const d of ducks) {
     const h = d.size * .85;
     d.vy += 140 * dt;
     d.x += d.vx * dt; d.y += d.vy * dt; d.t += dt * (6 + Math.abs(d.vx) / 40);
     if (d.x < 0) { d.x = 0; d.vx = Math.abs(d.vx); }
     if (d.x > W - d.size) { d.x = W - d.size; d.vx = -Math.abs(d.vx); }
-    if (d.y < 64 && d.vy < 0) { d.y = 64; d.vy = Math.abs(d.vy); }
+    if (d.y < 0 && d.vy < 0) { d.y = 0; d.vy = Math.abs(d.vy); }
     if (d.y > H - h) { d.y = H - h; d.vy = -Math.max(200, Math.abs(d.vy) * .92); }
     place(d);
   }
@@ -231,13 +253,13 @@ function end(){
     nameIn.focus({ preventScroll: true });
   } else {
     $('#go').focus();
-    spawn(innerWidth / 2 - 50, innerHeight / 2 - 160);
+    spawn(A.w / 2 - 50, A.h / 2 - 140);
   }
   refresh();
 }
 $('#go').addEventListener('click', start);
 refresh();
-spawn(innerWidth / 2 - 50, innerHeight / 2 - 170);
+spawn(A.w / 2 - 50, A.h / 2 - 150);
 if (!reduce) raf = requestAnimationFrame(frame);
 else { playing = false; }
 })();
@@ -261,7 +283,7 @@ def page(api=""):
 <template id="duck-tpl">{DUCK}</template>
 <header class="hud"><a class="up" href="/">← 3rd Records</a>
 <div class="stats up"><span>Score<b id="score">0</b></span><span class="time">Time<b id="time">30</b></span><span>Best<b id="best">0</b></span></div></header>
-<div class="layer" id="layer"></div>
+<div class="layer" id="layer"><div class="arena" id="arena"></div></div>
 <main class="center" id="menu"><div class="panel"><p class="up">3rd Records · secret level</p><h1 id="title">Quack.</h1>
 <p id="msg" aria-live="polite">You found the duck. Catch as many as you can in 30 seconds. Golden ones are worth 5.</p>
 <form class="save" id="save" hidden><label class="sr" for="name">Your name</label><input id="name" name="name" maxlength="12" autocomplete="nickname" autocapitalize="characters" spellcheck="false" placeholder="Your name" required><button class="btn solid" type="submit">Save score</button></form>
