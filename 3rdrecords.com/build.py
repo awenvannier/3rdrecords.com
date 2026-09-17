@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Build 3rdrecords.com into ./dist from site.json.
 
-New release: edit the "release" block in site.json (links, date, cover base URL).
-Covers and artist photos are served from the artist's own website (djouher.com).
+Pages: home, /catalog/, /releases/<slug>/, /artists/, /artists/<slug>/, /news/, /contact/.
+New release: add it at the top of "releases" in site.json (links, date, cover URLs).
 Logos live in assets/*.svg (vector traces of the official 3rd Records marks).
+js/site.js adds the interactions (menu, reveal, slider, filters, Spotify players); every page works without it.
 Push to main and GitHub Actions rebuilds and redeploys.
 Requires Python 3.9+, Pillow and CairoSVG (pip install pillow cairosvg).
 """
@@ -19,6 +20,8 @@ e = lambda s: html.escape(s, quote=True)
 TODAY = dt.date.today().isoformat()
 IMG_URLS = [u for rel in RELEASES for kind in ("jpg", "webp") for u in rel["image"].get(kind, {}).values()]
 ORIGINS = sorted({re.match(r"https://[^/]+", u).group(0) for u in IMG_URLS + [a["image"] for a in ARTISTS] if u.startswith("https://")})
+
+
 
 
 def artist_of(rel):
@@ -87,120 +90,340 @@ def circle(fill, mark="#FEFEFE", size=None, ref=False):
             f'<circle cx="1400" cy="1400" r="1400" fill="{fill}"/>{inner}</svg>')
 
 
+CENTER = ' class="c"'
+JS_VER = hashlib.sha256((ROOT / "js" / "site.js").read_bytes()).hexdigest()[:8]
+CB_ARTIST = next((a for a in ARTISTS if CB and a["name"] == CB["name"]), ARTISTS[-1])
+
+
+ICONS = {
+    "right": '<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/>',
+    "left": '<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m6-6-6 6 6 6"/>',
+    "out": '<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8 16 16 8m-7 0h7v7"/>',
+    "up": '<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 19V5m-6 6 6-6 6 6"/>',
+    "play": '<path fill="currentColor" d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/>',
+    "x": '<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="m6 6 12 12M18 6 6 18"/>',
+}
 SYMBOLS = ('<svg class="sr" aria-hidden="true" focusable="false"><symbol id="cm" viewBox="0 0 2800 2800">'
-           f'<path transform="{CMARK[1]}" d="{CMARK[2]}"/></symbol></svg>')
+           f'<path transform="{CMARK[1]}" d="{CMARK[2]}"/></symbol>'
+           + "".join(f'<symbol id="i-{k}" viewBox="0 0 24 24">{v}</symbol>' for k, v in ICONS.items())
+           + '</svg>')
+
+
+def icon(name):
+    return f'<svg class="ico" aria-hidden="true" focusable="false"><use href="#i-{name}"/></svg>'
+
+
+def words(text):
+    """Split a heading into word masks for the rise-in animation (text stays plain for crawlers and screen readers)."""
+    parts = text.split(" ")
+    return " ".join(f'<span class="w"><span>{e(p)}</span></span>' for p in parts)
 
 
 CSS = """
 @font-face{font-family:Avigea;src:url(/fonts/avigea.woff2) format("woff2");font-display:swap}
 @font-face{font-family:Roboto;src:url(/fonts/roboto-regular.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:Roboto;src:url(/fonts/roboto-medium.woff2) format("woff2");font-weight:500;font-display:swap}
-:root{--choco:#512321;--orange:#F6A10E;--ink:#1D1D1B;--white:#FEFEFE;--grey:#9E9E9E;--line:rgba(254,254,254,.16);--d:Avigea,"Cooper Black",Georgia,serif;--pad:clamp(1rem,4vw,2.5rem);color-scheme:dark}
+@view-transition{navigation:auto}
+:root{--choco:#512321;--orange:#F6A10E;--ink:#1D1D1B;--deep:#151514;--white:#FEFEFE;--soft:#e9e6e1;--grey:#9E9E9E;--line:rgba(254,254,254,.14);--d:Avigea,"Cooper Black",Georgia,serif;--pad:clamp(1rem,4vw,2.5rem);--ease:cubic-bezier(.2,.7,.2,1);color-scheme:dark}
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
-body{margin:0;background:var(--ink);color:var(--white);font:400 1rem/1.6 Roboto,"Helvetica Neue",Arial,system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:3.5rem}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:5rem}
+body{margin:0;background:var(--ink);color:var(--white);font:400 1rem/1.6 Roboto,"Helvetica Neue",Arial,system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:3.5rem;overflow-x:clip}
+::selection{background:var(--orange);color:var(--ink)}
 a{color:inherit}
-a:focus-visible{outline:2px solid var(--orange);outline-offset:4px}
-img,svg{display:block;max-width:100%;height:auto}
+:focus-visible{outline:2px solid var(--orange);outline-offset:4px}
+img,svg,video,canvas{display:block;max-width:100%}
+img,svg{height:auto}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 h1,h2,h3{margin:0;font-family:var(--d);font-weight:400;line-height:.95;letter-spacing:-.01em}
-ul{list-style:none;margin:0;padding:0}
+ul,ol{list-style:none;margin:0;padding:0}
+[hidden]{display:none!important}
 .up{font-size:.6875rem;font-weight:500;letter-spacing:.24em;text-transform:uppercase}
 .or{color:var(--orange)}
-.skip{position:absolute;left:var(--pad);top:-4rem;z-index:9;background:var(--orange);color:var(--ink);padding:.6rem 1rem}
+.mute{color:var(--grey)}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ico{display:inline-block;width:1.15em;height:1.15em;flex:none;vertical-align:-.2em}
+.skip{position:absolute;left:var(--pad);top:-4rem;z-index:30;background:var(--orange);color:var(--ink);padding:.6rem 1rem}
 .skip:focus{top:1rem}
-.top{position:absolute;inset:0 0 auto;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.25rem var(--pad)}
-.brand{display:block;width:2.75rem;flex:none}
-.top nav{display:flex;gap:clamp(1rem,3vw,2.75rem)}
-.top nav a,.bar a{text-decoration:none;padding:.5rem 0}
-.top nav a:hover,.bar a:hover,.follow a:hover{color:var(--orange)}
-.hero{position:relative;background:var(--ink);min-height:calc(100vh - 3.5rem);min-height:calc(100svh - 3.5rem);display:flex;flex-direction:column;justify-content:center;overflow:hidden;isolation:isolate}
-.hero::before{content:"";position:absolute;z-index:-1;width:70vmax;aspect-ratio:1;left:50%;top:40%;border-radius:50%;background:radial-gradient(circle,rgba(246,161,14,.22),rgba(246,161,14,0) 62%);transform:translate(-50%,-50%);animation:glow 7s ease-in-out infinite alternate}
-.hero-in{flex:1;align-content:center;padding:6rem var(--pad) 2.5rem;display:grid;gap:clamp(1.5rem,4vh,2.5rem);justify-items:center;text-align:center;width:100%;max-width:84rem;margin:0 auto}
+.progress{position:fixed;inset:0 0 auto;z-index:25;height:2px;background:var(--orange);transform-origin:0 50%;transform:scaleX(var(--sp,0));pointer-events:none}
+.glow{position:fixed;left:0;top:0;z-index:0;width:46rem;height:46rem;margin:-23rem 0 0 -23rem;border-radius:50%;background:radial-gradient(circle,rgba(246,161,14,.09),rgba(246,161,14,0) 62%);pointer-events:none;opacity:0;transform:translate(var(--cx,-60rem),var(--cy,-60rem));transition:opacity .5s}
+.moved .glow{opacity:1}
+main,.foot{position:relative;z-index:1}
+.top{position:fixed;inset:0 0 auto;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:1rem;height:4.5rem;padding:0 var(--pad);border-bottom:1px solid transparent;transition:height .35s var(--ease),background-color .35s,border-color .35s}
+.top.solid{height:3.75rem;background:rgba(21,21,20,.84);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-color:var(--line)}
+.brand{display:flex;align-items:center;gap:.75rem;text-decoration:none;flex:none}
+.brand svg{width:2.5rem;transition:transform .8s var(--ease)}
+.brand:hover svg{transform:rotate(-360deg)}
+.nav{display:flex;align-items:center;gap:.15rem}
+.nav a{padding:.55rem .85rem;border-radius:999px;text-decoration:none;white-space:nowrap;transition:color .2s,background-color .2s}
+.nav a:hover{color:var(--orange)}
+.nav a[aria-current]{background:var(--white);color:var(--ink)}
+.nav i{font-style:normal;color:var(--orange);margin-right:.45em}
+.nav a[aria-current] i{color:var(--choco)}
+.menu{display:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.7em;min-height:2.875rem;padding:0 1.4rem;border:1px solid currentColor;border-radius:999px;text-decoration:none;white-space:nowrap;transition:background-color .25s,color .25s,border-color .25s}
+.btn:hover{background:var(--orange);border-color:var(--orange);color:var(--ink)}
+.btn.fill{background:var(--orange);border-color:var(--orange);color:var(--ink)}
+.btn.fill:hover{background:var(--white);border-color:var(--white)}
+.btn .ico{transition:transform .3s var(--ease)}
+.btn:hover .ico{transform:translateX(.2em)}
+.magnet{transform:translate(var(--mx,0),var(--my,0));transition:transform .35s var(--ease),background-color .25s,color .25s,border-color .25s}
+.round{display:inline-grid;place-items:center;width:3rem;height:3rem;border-radius:50%;border:1px solid var(--line)}
+.round:hover{background:var(--orange);border-color:var(--orange);color:var(--ink)}
+.hero{position:relative;min-height:calc(100vh - 3.5rem);min-height:calc(100svh - 3.5rem);display:flex;flex-direction:column;overflow:hidden;isolation:isolate}
+.hero::before{content:"";position:absolute;z-index:-1;width:70vmax;aspect-ratio:1;left:50%;top:42%;border-radius:50%;background:radial-gradient(circle,rgba(246,161,14,.22),rgba(246,161,14,0) 62%);transform:translate(-50%,-50%);animation:glow 7s ease-in-out infinite alternate}
+.hero-in{flex:1;align-content:center;padding:6rem var(--pad) 1.5rem;display:grid;gap:clamp(1.5rem,4vh,2.5rem);justify-items:center;text-align:center;width:100%;max-width:84rem;margin:0 auto}
 .stage{position:relative;width:min(72vw,26rem);aspect-ratio:1}
-.disc{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,#0c0c0b 0 31%,transparent 31.2%),repeating-radial-gradient(circle,#131312 0 1.5px,#262624 1.6px 3.2px);box-shadow:0 1.5rem 4rem rgba(0,0,0,.55),inset 0 0 0 .35rem #0c0c0b;animation:spin 5s linear infinite}
+.disc{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,#0c0c0b 0 31%,transparent 31.2%),repeating-radial-gradient(circle,#131312 0 1.5px,#262624 1.6px 3.2px);box-shadow:0 1.5rem 4rem rgba(0,0,0,.55),inset 0 0 0 .35rem #0c0c0b;animation:spin 5s linear infinite;touch-action:pan-y;cursor:grab}
+.disc.grab{cursor:grabbing}
+.js .disc.driven{animation:none}
 .disc svg{position:absolute;inset:32%;width:36%}
 .disc::after{content:"";position:absolute;left:50%;top:50%;width:2.2%;aspect-ratio:1;border-radius:50%;background:var(--ink);transform:translate(-50%,-50%)}
 .sheen{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 30deg,transparent 0 8%,rgba(255,255,255,.09) 12%,transparent 18% 58%,rgba(255,255,255,.07) 62%,transparent 68%);pointer-events:none}
-.arm{position:absolute;right:-6%;top:-4%;width:34%;height:62%;transform-origin:85% 8%;transform:rotate(22deg);animation:arm 5s ease-in-out infinite alternate}
+.arm{position:absolute;right:-6%;top:-4%;width:34%;height:62%;transform-origin:85% 8%;transform:rotate(22deg);animation:arm 5s ease-in-out infinite alternate;pointer-events:none}
 .arm::before{content:"";position:absolute;right:10%;top:0;width:1.1rem;aspect-ratio:1;border-radius:50%;background:var(--grey);box-shadow:0 0 0 .35rem #3a3a38}
 .arm::after{content:"";position:absolute;right:calc(10% + .45rem);top:.55rem;width:.22rem;height:92%;background:linear-gradient(var(--grey),#cfcfcf);border-radius:.2rem;box-shadow:-.15rem 0 0 rgba(0,0,0,.25)}
+.hint{position:absolute;left:50%;bottom:-1.75rem;transform:translateX(-50%);color:var(--grey);white-space:nowrap;opacity:0;transition:opacity .4s}
+.js .stage:hover .hint{opacity:1}
 .hero h1{width:min(100%,46rem)}
 .lockup{width:100%;overflow:visible}
-.duck{transform-box:fill-box;transform-origin:50% 90%;animation:bob 2.4s ease-in-out infinite}.egg{cursor:pointer}.egg:hover .duck{animation-duration:.5s}
-.rise{animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
-.rise.d2{animation-delay:.12s}.rise.d3{animation-delay:.24s}
-.tag{margin:0;color:var(--grey)}
-.cta{margin:0;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.75rem 1.5rem}
-.btn{display:inline-flex;align-items:center;gap:.75em;min-height:2.875rem;padding:0 1.4rem;border:1px solid currentColor;border-radius:999px;text-decoration:none;transition:background .2s,color .2s,border-color .2s,transform .2s}
-.btn:hover{background:var(--orange);border-color:var(--orange);color:var(--ink);transform:translateY(-2px)}
-.ticker{overflow:hidden;border-block:1px solid var(--line);padding:.9rem 0;white-space:nowrap}
+.duck{transform-box:fill-box;transform-origin:50% 90%;animation:bob 2.4s ease-in-out infinite}
+.egg{cursor:pointer}.egg:hover .duck{animation-duration:.5s}
+.rise{animation:rise .9s var(--ease) both}
+.rise.d2{animation-delay:.12s}.rise.d3{animation-delay:.24s}.rise.d4{animation-delay:.36s}
+.tag{margin:0;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.5rem;color:var(--grey)}
+.lm{width:1.5rem;height:1.5rem;animation:spin 12s linear infinite}
+.cta{margin:0;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.75rem 1.25rem}
+.eq{width:100%;height:4.5rem;opacity:.6}
+.ticker{overflow:hidden;border-block:1px solid var(--line);padding:.9rem 0;white-space:nowrap;background:var(--ink)}
 .ticker div{display:inline-flex;animation:tick 32s linear infinite}
+.ticker:hover div{animation-play-state:paused}
 .ticker span{font:400 clamp(1.75rem,4vw,2.75rem)/1 var(--d);padding-right:2.5rem;display:inline-flex;align-items:center;gap:2.5rem}
 .ticker span::after{content:"";width:.6em;aspect-ratio:1;border-radius:50%;background:var(--orange)}
 .ticker b{font-weight:400;color:var(--orange)}
+.sec{max-width:84rem;margin:0 auto;padding:clamp(5rem,12vw,9rem) var(--pad) 0}
+.page{padding-top:clamp(7rem,14vw,10rem)}
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1.5rem 3rem;margin-bottom:clamp(2rem,5vw,3.5rem)}
+.head h1,.head h2{font-size:clamp(3.25rem,10vw,7.5rem)}
+.head p:not(.kick){margin:0;max-width:30em;color:var(--soft)}
+.kick{display:flex;align-items:center;gap:.7rem;margin:0 0 1.1rem;color:var(--orange)}
+.kick::before{content:"";width:1.75rem;height:1px;background:currentColor}
+.lead{margin:1.5rem 0 0;max-width:36em;font-size:clamp(1.125rem,2.1vw,1.375rem);color:var(--soft)}
+.w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .04em .12em;margin:0 -.04em -.12em}
+.w>span{display:inline-block}
+.load .w>span{animation:wup 1s var(--ease) both}
+.load .w:nth-child(2)>span{animation-delay:.07s}.load .w:nth-child(3)>span{animation-delay:.14s}.load .w:nth-child(4)>span{animation-delay:.21s}.load .w:nth-child(5)>span{animation-delay:.28s}
+.crumbs{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.5rem;color:var(--grey)}
+.crumbs a{text-decoration:none}.crumbs a:hover{color:var(--orange)}
+.crumbs li+li::before{content:"/";margin-right:.5rem}
+.release{display:grid;gap:clamp(2rem,5vw,4.5rem)}
+.sleeve{position:relative;margin-right:30%}
+.sleeve picture{position:relative;z-index:1;display:block;box-shadow:0 1.5rem 3rem rgba(0,0,0,.5)}
+.cover{width:100%;aspect-ratio:1;background:var(--choco)}
+.rec{position:absolute;inset:3%;border-radius:50%;background:radial-gradient(circle,#0c0c0b 0 31%,transparent 31.2%),repeating-radial-gradient(circle,#131312 0 1.5px,#262624 1.6px 3.2px);box-shadow:inset 0 0 0 1px #3a3a38,0 1rem 2rem rgba(0,0,0,.5);animation:slide 1.2s .3s var(--ease) both;transition:transform .8s var(--ease)}
+.rec svg{position:absolute;inset:32%;width:36%}
+.release:hover .rec{transform:translateX(46%) rotate(200deg)}
+.title{font-size:clamp(3.5rem,11vw,8rem)}
+.title a{text-decoration:none}
+.by{margin:1rem 0 0;font:400 clamp(1.5rem,3.5vw,2.25rem)/1.1 var(--d)}
+.by a{text-decoration-thickness:1px;text-underline-offset:.2em}
+.by a:hover,.title a:hover{color:var(--orange)}
+.meta{margin:1rem 0 2.25rem;color:var(--grey)}
+.credit{margin:2.5rem 0 0;max-width:34em;color:var(--soft)}
+.listen{border-top:1px solid var(--line)}
+.listen a{position:relative;isolation:isolate;display:flex;justify-content:space-between;align-items:center;gap:1rem;min-height:4rem;padding:0 .25rem;border-bottom:1px solid var(--line);text-decoration:none;overflow:hidden;transition:padding .4s var(--ease),color .3s}
+.listen a::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--orange);transform:scaleY(0);transform-origin:50% 100%;transition:transform .4s var(--ease)}
+.listen a:hover{color:var(--ink);padding:0 1rem}
+.listen a:hover::before{transform:none}
+.pf{font:400 clamp(1.5rem,3.4vw,2.125rem)/1 var(--d)}
+.act{display:inline-flex;align-items:center;gap:.5em;color:var(--grey);white-space:nowrap;transition:color .3s}
+.listen a:hover .act{color:var(--ink)}
+.player{margin-top:1.75rem;border:1px solid var(--line);border-radius:12px;background:var(--deep);overflow:hidden}
+.player button{display:flex;align-items:center;gap:1rem;width:100%;min-height:5rem;padding:.9rem 1.1rem;text-align:left}
+.player iframe{display:block;width:100%;height:152px;border:0}
+.pp{display:inline-grid;place-items:center;flex:none;width:3.25rem;height:3.25rem;border-radius:50%;background:var(--orange);color:var(--ink);transition:transform .3s var(--ease)}
+.pp .ico{width:1.3rem;height:1.3rem;margin-left:.15rem}
+.player button:hover .pp{transform:scale(1.08)}
+.player b{display:block;font:400 1.35rem/1.1 var(--d)}
+.player small{display:block;margin-top:.25rem;color:var(--grey)}
+.art{position:relative;display:block;overflow:hidden;background:var(--choco);border-radius:6px;transform:perspective(900px) rotateX(var(--ry,0deg)) rotateY(var(--rx,0deg));transition:transform .6s var(--ease),box-shadow .6s var(--ease)}
+.art::after{content:"";position:absolute;inset:0;z-index:2;background:radial-gradient(circle at var(--x,50%) var(--y,50%),rgba(255,255,255,.2),rgba(255,255,255,0) 45%);opacity:0;transition:opacity .4s;pointer-events:none}
+.art img{width:100%;aspect-ratio:1;object-fit:cover;transition:transform 1s var(--ease)}
+.card,.artist{display:block;text-decoration:none}
+.card:hover .art,.artist:hover .art,.slide .art:hover{box-shadow:0 1.75rem 3.5rem rgba(0,0,0,.55)}
+.card:hover .art::after,.artist:hover .art::after,.art:hover::after{opacity:1}
+.card:hover img,.artist:hover img,.art:hover img{transform:scale(1.05)}
+.go{position:absolute;right:.9rem;bottom:.9rem;z-index:3;display:grid;place-items:center;width:2.75rem;height:2.75rem;border-radius:50%;background:var(--orange);color:var(--ink);transform:scale(0) rotate(-45deg);transition:transform .45s var(--ease)}
+.card:hover .go,.artist:hover .go,.card:focus-visible .go,.artist:focus-visible .go{transform:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:2.75rem 1.5rem}
+.card h2,.card h3{font-size:clamp(1.6rem,3vw,2.25rem);margin-top:1.1rem;transition:color .25s}
+.card:hover h2,.card:hover h3{color:var(--orange)}
+.card p{margin:.45rem 0 0;color:var(--grey)}
+.chips{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:0 0 2.5rem}
+.chip{height:2.5rem;padding:0 1.1rem;border:1px solid var(--line);border-radius:999px;transition:background-color .25s,color .25s,border-color .25s}
+.chip:hover{border-color:var(--orange)}
+.chip[aria-pressed=true]{background:var(--orange);border-color:var(--orange);color:var(--ink)}
+.chips output{margin-left:auto;color:var(--grey)}
+.roster{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fill,minmax(min(100%,18rem),1fr))}
+.artist .art{border-radius:6px}
+.artist img,.artist video{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 58%}
+.artist img.c{object-position:50% 50%}
+.artist video{position:absolute;inset:0;height:100%;transition:transform 1s var(--ease)}
+.artist:hover video{transform:scale(1.05)}
+.artist .info{position:absolute;z-index:3;inset:auto 0 0;padding:1.25rem 1.25rem 1.1rem;background:linear-gradient(to top,rgba(21,21,20,.94),rgba(21,21,20,0))}
+.artist h2,.artist h3{font-size:clamp(2.5rem,6vw,3.75rem)}
+.artist p{margin:.45rem 0 0;color:var(--orange)}
+.artist .go{top:.9rem;bottom:auto}
+.slider{position:relative}
+.track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:start;display:grid;gap:clamp(1.5rem,4vw,4.5rem);align-items:center;padding:.5rem .25rem 1rem}
+.slide .art{max-width:34rem;width:100%}
+.slide h3{font-size:clamp(2.75rem,8vw,6rem)}
+.slide h3 a{text-decoration:none}.slide h3 a:hover{color:var(--orange)}
+.pills{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.5rem 0 2rem}
+.pills a{display:inline-flex;align-items:center;gap:.4em;height:2.25rem;padding:0 .95rem;border:1px solid var(--line);border-radius:999px;text-decoration:none;font-size:.875rem;transition:border-color .2s,color .2s}
+.pills a:hover{border-color:var(--orange);color:var(--orange)}
+.ctrl{display:flex;align-items:center;gap:.75rem}
+.count{min-width:4.5rem;text-align:center;color:var(--grey)}
+.count b{color:var(--white);font-weight:500}
+.bars{display:flex;gap:.4rem;margin:1.5rem 0 2.5rem}
+.bars button{flex:1;height:1.25rem;position:relative}
+.bars button::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:var(--line);transition:background-color .3s}
+.bars button.done::before{background:rgba(246,161,14,.4)}
+.bars button[aria-current=true]::before{background:var(--orange)}
+.backdrop{position:absolute;inset:-4rem -20vw;z-index:-1;overflow:hidden;pointer-events:none}
+.backdrop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(80px) saturate(1.3);opacity:0;transform:scale(1.2);transition:opacity 1s}
+.backdrop img.on{opacity:.22}
+.feat{position:relative;isolation:isolate}
+.news{border-top:1px solid var(--line)}
+.news li{border-bottom:1px solid var(--line)}
+.news a{display:grid;gap:.55rem;padding:1.75rem 0;text-decoration:none;transition:padding .4s var(--ease)}
+.news a:hover{padding-left:1rem}
+.news h2,.news h3{font-size:clamp(1.5rem,3.2vw,2.5rem);line-height:1.05;transition:color .2s}
+.news a:hover h2,.news a:hover h3{color:var(--orange)}
+.news p{margin:0;max-width:44em;color:var(--soft)}
+.news .up{color:var(--grey)}
+.news .up.or{color:var(--orange);display:flex;align-items:center;gap:.5em}
+.more{margin:2.5rem 0 0;display:flex;flex-wrap:wrap;gap:1rem}
+.about{display:grid;gap:2rem;align-items:center}
+.about p:not(.kick){margin:0;max-width:30em;font-size:clamp(1.25rem,2.4vw,1.75rem);line-height:1.45;color:var(--soft)}
+.seal{width:min(15rem,42vw)}
+.seal svg{transform:rotate(calc(var(--sp,0) * 540deg))}
+.profile{display:grid;gap:clamp(2rem,5vw,5rem);align-items:end}
+.portrait img,.portrait video{width:100%;aspect-ratio:4/5;object-fit:cover}
+.portrait video{position:absolute;inset:0;height:100%}
+.profile h1{font-size:clamp(4rem,15vw,10.5rem)}
+.role{margin:1.25rem 0 .5rem;font:400 clamp(1.35rem,2.8vw,2rem)/1.25 var(--d);color:var(--soft)}
+.profile .meta{margin-bottom:2rem}
+.pager{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pager a{display:grid;gap:.5rem;padding:2rem 0;text-decoration:none}
+.pager a+a{text-align:right;justify-items:end;border-left:1px solid var(--line);padding-left:1rem}
+.pager a:first-child{padding-right:1rem}
+.pager b{font:400 clamp(1.5rem,4.5vw,3.25rem)/1 var(--d);transition:color .2s}
+.pager span{display:inline-flex;align-items:center;gap:.5em;color:var(--grey)}
+.pager a:hover b{color:var(--orange)}
+.mailbox{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 2rem;margin-top:clamp(2.5rem,6vw,4rem)}
+.big-mail{font:400 clamp(2rem,7.5vw,6rem)/1.05 var(--d);text-decoration:none;overflow-wrap:anywhere;background:linear-gradient(var(--orange),var(--orange)) 0 100%/0 3px no-repeat;padding-bottom:.08em;transition:background-size .6s var(--ease),color .25s}
+.big-mail:hover{background-size:100% 3px;color:var(--orange)}
+.links-big{display:flex;flex-wrap:wrap;gap:.25rem 2rem}
+.links-big a{display:inline-flex;align-items:center;gap:.3em;font:400 clamp(1.75rem,4.5vw,3rem)/1.3 var(--d);text-decoration:none;transition:color .2s}
+.links-big a:hover{color:var(--orange)}
+.links-big .ico{width:.6em;height:.6em}
+.foot{max-width:84rem;margin:clamp(6rem,14vw,10rem) auto 0;padding:0 var(--pad) 2rem}
+.foot-cta{display:grid;gap:1.25rem;padding:clamp(2.5rem,6vw,4rem) 0;border-top:1px solid var(--line)}
+.foot-cta h2{font-size:clamp(3.25rem,11vw,8rem)}
+.foot-cta .mailbox{margin-top:.5rem}
+.foot-cta .big-mail{font-size:clamp(1.6rem,4.5vw,3.25rem)}
+.foot-grid{display:grid;gap:2rem 1.5rem;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));padding:2.5rem 0;border-top:1px solid var(--line)}
+.fh{margin:0 0 1rem;color:var(--grey)}
+.foot-grid li a{display:inline-block;padding:.2rem 0;text-decoration:none;transition:color .2s}
+.foot-grid li a:hover{color:var(--orange)}
+.legal{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;padding-top:1.5rem;border-top:1px solid var(--line);color:var(--grey)}
+.legal button{display:inline-flex;align-items:center;gap:.5em;color:var(--white)}
+.legal button:hover{color:var(--orange)}
+.bar{position:fixed;inset:auto 0 0;z-index:15;display:flex;align-items:center;gap:.9rem;min-height:3.5rem;padding:0 var(--pad);background:rgba(21,21,20,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+.bar .pp{width:2.25rem;height:2.25rem}
+.bar .pp .ico{width:.95rem;height:.95rem}
+.bar .pp:hover{transform:scale(1.1)}
+.bar b{font-weight:500;display:flex;align-items:center;gap:.6rem;white-space:nowrap}
+.bar b::before{content:"";width:.5rem;height:.5rem;border-radius:50%;background:var(--orange);animation:pulse 2s ease-in-out infinite}
+.bar i{font-style:normal;color:var(--grey);display:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar i a{text-decoration:none}.bar i a:hover{color:var(--white)}
+.bar span{margin-left:auto;display:flex;gap:1.25rem}
+.bar span a{text-decoration:none;padding:.5rem 0}
+.bar span a:hover{color:var(--orange)}
+.dock{position:fixed;right:var(--pad);bottom:4.25rem;z-index:16;width:min(26rem,calc(100vw - 2 * var(--pad)));border:1px solid var(--line);border-radius:14px;background:var(--deep);box-shadow:0 1.5rem 3rem rgba(0,0,0,.5);overflow:hidden;animation:rise .5s var(--ease) both}
+.dock iframe{display:block;width:100%;height:152px;border:0}
+.dock button{position:absolute;right:.4rem;top:.4rem;z-index:1;display:grid;place-items:center;width:2rem;height:2rem;border-radius:50%;background:rgba(0,0,0,.6)}
+.nf{min-height:100svh;display:grid;place-content:center;gap:1.5rem;text-align:center;padding:6rem var(--pad) 3rem}
+.nf h1{font-size:clamp(3.5rem,12vw,8rem)}
+.nf .seal{margin:0 auto;width:7rem}
+.nf .seal svg{animation:spin 5s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes bob{0%,100%{transform:rotate(0) translateY(0)}30%{transform:rotate(-4deg) translateY(-2%)}60%{transform:rotate(2deg) translateY(0)}}
 @keyframes glow{from{opacity:.55;transform:translate(-50%,-50%) scale(.9)}to{opacity:1;transform:translate(-50%,-50%) scale(1.08)}}
 @keyframes arm{from{transform:rotate(20deg)}to{transform:rotate(24deg)}}
 @keyframes rise{from{opacity:0;transform:translateY(1.25rem)}to{opacity:1;transform:none}}
+@keyframes wup{from{transform:translateY(110%)}to{transform:none}}
 @keyframes tick{to{transform:translateX(-50%)}}
 @keyframes slide{from{transform:translateX(0) rotate(0)}to{transform:translateX(40%) rotate(90deg)}}
-.sec{max-width:84rem;margin:0 auto;padding:clamp(4.5rem,12vw,8rem) var(--pad) 0}
-.kick{margin:0 0 .9rem;color:var(--orange)}
-.release{display:grid;gap:clamp(2rem,5vw,4.5rem)}
-.sleeve{position:relative;margin-right:30%}.sleeve picture{position:relative;z-index:1;display:block;box-shadow:0 1.5rem 3rem rgba(0,0,0,.5)}.cover{width:100%;aspect-ratio:1;background:var(--choco)}.rec{position:absolute;inset:3%;border-radius:50%;background:radial-gradient(circle,#0c0c0b 0 31%,transparent 31.2%),repeating-radial-gradient(circle,#131312 0 1.5px,#262624 1.6px 3.2px);box-shadow:inset 0 0 0 1px #3a3a38,0 1rem 2rem rgba(0,0,0,.5);animation:slide 1.2s .3s cubic-bezier(.2,.7,.2,1) both;transition:transform .6s}.rec svg{position:absolute;inset:32%;width:36%}.release:hover .rec{transform:translateX(46%) rotate(160deg)}
-.title{font-size:clamp(3.5rem,11vw,8rem)}
-.by{margin:.5rem 0 0;font:400 clamp(1.5rem,3.5vw,2.25rem)/1.1 var(--d)}
-.by a{text-decoration-thickness:1px;text-underline-offset:.2em}
-.by a:hover,.title a:hover{color:var(--orange)}
-.title a{text-decoration:none}
-.crumbs{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem;color:var(--grey)}.crumbs a{text-decoration:none}.crumbs a:hover{color:var(--orange)}.crumbs li+li::before{content:"/";margin-right:.5rem}
-.page{padding-top:7rem}
-.news{margin-top:2.5rem;border-top:1px solid var(--line)}.news li{border-bottom:1px solid var(--line)}.news a{display:grid;gap:.5rem;padding:1.5rem 0;text-decoration:none}.news h3{font-size:clamp(1.5rem,3.2vw,2.25rem);line-height:1.05;transition:color .2s}.news a:hover h3{color:var(--orange)}.news p{margin:0;max-width:44em;color:#e9e6e1}.news .up{color:var(--grey)}.more{margin:2rem 0 0}
-.lead{margin:1.5rem 0 0;max-width:36em;font-size:clamp(1.125rem,2.1vw,1.375rem);color:#e9e6e1}
-.credit{margin:2.5rem 0 0;max-width:34em;color:#e9e6e1}
-.meta{margin:1rem 0 2.25rem;color:var(--grey)}
-.listen{border-top:1px solid var(--line)}
-.listen a{display:flex;justify-content:space-between;align-items:center;gap:1rem;min-height:4rem;border-bottom:1px solid var(--line);text-decoration:none}
-.pf{font:400 clamp(1.5rem,3.4vw,2.125rem)/1 var(--d);transition:color .2s}
-.act{color:var(--grey);white-space:nowrap}
-.listen a:hover .pf{color:var(--orange)}
-.listen a:hover .act{color:var(--white)}
-.sec>h2,.foot h2{font-size:clamp(3rem,8vw,5.5rem)}
-.roster{display:grid;gap:1.5rem;margin-top:2.5rem}.cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,13rem),1fr));gap:2rem 1.5rem;margin-top:2.5rem}.cat a{display:block;text-decoration:none}.cat img{width:100%;aspect-ratio:1;background:var(--choco);transition:transform .4s}.cat a:hover img{transform:rotate(-2deg) scale(1.02)}.cat h3{font-size:clamp(1.5rem,3vw,2rem);margin-top:.9rem}.cat p{margin:.35rem 0 0;color:var(--grey)}.cat a:hover h3{color:var(--orange)}
-.artist{position:relative;display:block;background:var(--choco);text-decoration:none;overflow:hidden}
-.artist img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 58%;transition:transform .5s}.artist img.c{object-position:50% 50%}
-.artist div{position:absolute;z-index:1;inset:auto 0 0;padding:1.25rem 1.25rem 1.1rem;background:linear-gradient(to top,rgba(29,29,27,.92),rgba(29,29,27,0))}
-.artist h3{font-size:clamp(2.5rem,6vw,3.75rem)}
-.artist p{margin:.4rem 0 0;color:var(--orange)}
-.artist:hover img,.artist:hover video{transform:scale(1.03)}.artist video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s}.tag{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.5rem}.lm{width:1.5rem;height:1.5rem;animation:spin 12s linear infinite}
-.about{display:grid;gap:1.5rem;align-items:center}
-.about p:not(.kick){margin:0;max-width:30em;font-size:clamp(1.125rem,2.1vw,1.5rem);line-height:1.5;color:#e9e6e1}
-.seal{width:min(14rem,40vw)}
-.foot{padding-bottom:3rem;display:grid;gap:3rem}
-.mail{display:inline-block;margin-top:1.25rem;font:400 clamp(1.5rem,4vw,2.5rem)/1.2 var(--d);text-underline-offset:.2em;text-decoration-thickness:1px;overflow-wrap:anywhere}
-.mail:hover{color:var(--orange)}
-.follow{display:flex;flex-wrap:wrap;gap:.25rem 1.75rem;margin-top:1.25rem}
-.follow a{font:400 clamp(1.5rem,4vw,2.25rem)/1.3 var(--d);text-decoration:none}
-.legal{grid-column:1/-1;margin:0;padding-top:2rem;border-top:1px solid var(--line);color:var(--grey)}
-.bar{position:fixed;inset:auto 0 0;z-index:5;display:flex;align-items:center;gap:1rem;min-height:3.5rem;padding:0 var(--pad);background:var(--ink);border-top:1px solid var(--line)}
-.bar b{font-weight:500;display:flex;align-items:center;gap:.6rem}
-.bar b::before{content:"";width:.5rem;height:.5rem;border-radius:50%;background:var(--orange)}
-.bar i{font-style:normal;color:var(--grey);display:none}
-.bar span{margin-left:auto;display:flex;gap:1.25rem}
-.nf{min-height:100svh;display:grid;place-content:center;gap:1.5rem;text-align:center;padding:var(--pad)}.nf .seal{animation:spin 5s linear infinite}
-.nf h1{font-size:clamp(3.5rem,12vw,8rem)}
-.nf .seal{margin:0 auto;width:7rem}
-.sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-@media (max-width:39.99rem){.top nav .x{display:none}}
-@media (min-width:40rem){.bar i{display:inline}.roster{grid-template-columns:repeat(auto-fill,minmax(18rem,24rem))}}
-@media (min-width:60rem){.hero-in{grid-template-columns:minmax(0,5fr) minmax(0,7fr);text-align:left;justify-items:start;align-items:center;column-gap:clamp(2rem,6vw,6rem)}.hero-in .stage{grid-row:1/5;width:min(100%,30rem);justify-self:center}.cta,.tag{justify-content:flex-start}.release{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end}.about,.foot{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.seal{justify-self:end}}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}.rec{transform:translateX(40%)}.artist video{display:none}}
+@keyframes pulse{50%{opacity:.35}}
+@keyframes failsafe{to{opacity:1;transform:none}}
+@media (scripting:enabled) and (prefers-reduced-motion:no-preference){
+.reveal{opacity:0;transform:translateY(2rem);transition:opacity 1s var(--ease),transform 1s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.stagger>*{opacity:0;transform:translateY(1.75rem);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.stagger.in>*{opacity:1;transform:none}
+.stagger>:nth-child(2){transition-delay:.08s}.stagger>:nth-child(3){transition-delay:.16s}.stagger>:nth-child(4){transition-delay:.24s}.stagger>:nth-child(5){transition-delay:.32s}.stagger>:nth-child(n+6){transition-delay:.4s}
+.words:not(.load) .w>span{transform:translateY(110%);transition:transform 1s var(--ease)}
+.in .words .w>span,.words.in .w>span{transform:none}
+.words:not(.load) .w:nth-child(2)>span{transition-delay:.07s}.words:not(.load) .w:nth-child(3)>span{transition-delay:.14s}.words:not(.load) .w:nth-child(4)>span{transition-delay:.21s}
+html:not(.js) .reveal,html:not(.js) .stagger>*,html:not(.js) .words:not(.load) .w>span{animation:failsafe .01s 3s forwards}
+}
+@media (scripting:none){.menu,.ctrl,.bars,.bar .pp,.hint{display:none!important}}
+@media (max-width:52rem){
+.top .brand span{display:none}
+.nav{overflow-x:auto;scrollbar-width:none}
+.nav i{display:none}
+.nav a{padding:.55rem .6rem}
+}
+@media (max-width:52rem) and (scripting:enabled){
+.menu{display:inline-flex;align-items:center;gap:.7rem;height:2.5rem;padding:0 1.1rem;border:1px solid var(--line);border-radius:999px;background:rgba(21,21,20,.6)}
+.menu i{position:relative;width:1rem;height:.5rem}
+.menu i::before,.menu i::after{content:"";position:absolute;left:0;right:0;height:1.5px;background:currentColor;transition:transform .35s var(--ease),top .35s var(--ease)}
+.menu i::before{top:0}.menu i::after{top:calc(100% - 1.5px)}
+.open .menu i::before{top:calc(50% - .75px);transform:rotate(45deg)}
+.open .menu i::after{top:calc(50% - .75px);transform:rotate(-45deg)}
+.nav{position:fixed;inset:0;z-index:-1;flex-direction:column;align-items:flex-start;justify-content:center;gap:0;padding:6rem var(--pad) 5rem;background:var(--ink);overflow:auto;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}
+.nav a{display:flex;align-items:baseline;gap:.6rem;padding:.15rem 0;border-radius:0;font:400 clamp(2.75rem,13vw,4.75rem)/1.05 var(--d);letter-spacing:0;text-transform:none;opacity:0;transform:translateY(1.25rem);transition:opacity .5s,transform .6s var(--ease),color .2s}
+.nav a[aria-current]{background:none;color:var(--orange)}
+.nav i{display:inline;font:500 .75rem/1 Roboto,sans-serif;letter-spacing:.2em}
+.nav a[aria-current] i{color:var(--orange)}
+.open{overflow:hidden}
+.open .top{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--ink);border-color:transparent}
+.open .nav{opacity:1;visibility:visible}
+.open .nav a{opacity:1;transform:none}
+.open .nav a:nth-child(2){transition-delay:.05s}.open .nav a:nth-child(3){transition-delay:.1s}.open .nav a:nth-child(4){transition-delay:.15s}.open .nav a:nth-child(5){transition-delay:.2s}
+}
+@media (min-width:40rem){.bar i{display:block}}
+@media (min-width:48rem){.slide{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}}
+@media (min-width:60rem){
+.hero-in{grid-template-columns:minmax(0,5fr) minmax(0,7fr);text-align:left;justify-items:start;align-items:center;column-gap:clamp(2rem,6vw,6rem)}
+.hero-in .stage{grid-row:1/5;width:min(100%,30rem);justify-self:center}
+.cta,.tag{justify-content:flex-start}
+.release{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end}
+.about{grid-template-columns:minmax(0,1fr) auto}
+.profile{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+.roster{grid-template-columns:repeat(3,minmax(0,1fr))}
+.foot-cta{grid-template-columns:minmax(0,1fr) auto;align-items:end}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}.rec{transform:translateX(40%)}.artist video,.portrait video{display:none}.seal svg{transform:none}}
 """.strip()
 CSS = "".join(line.strip() for line in CSS.splitlines())
 CSS_HASH = base64.b64encode(hashlib.sha256(CSS.encode()).digest()).decode()
-CSP = (f"default-src 'none'; connect-src 'self'; img-src 'self' {' '.join(ORIGINS)}; font-src 'self'; media-src 'self'; "
-       f"style-src 'sha256-{CSS_HASH}'; base-uri 'none'; form-action 'none'")
+CSP = (f"default-src 'none'; script-src 'self'; connect-src 'self'; img-src 'self' {' '.join(ORIGINS)}; font-src 'self'; media-src 'self'; "
+       f"frame-src https://open.spotify.com; style-src 'sha256-{CSS_HASH}'; base-uri 'none'; form-action 'none'")
+
 
 
 def album_node(rel):
@@ -252,6 +475,60 @@ def jsonld():
                       ensure_ascii=False, separators=(",", ":"))
 
 
+def slug_of(a):
+    return a.get("slug") or re.sub(r"[^a-z0-9]+", "-", a["name"].lower()).strip("-")
+
+
+def artist_url(a):
+    return f"/artists/{slug_of(a)}/"
+
+
+NAV = [("Release", rel_url(R), "release"), ("Catalog", "/catalog/", "catalog"), ("Artists", "/artists/", "artists"),
+       ("News", "/news/", "news"), ("Contact", "/contact/", "contact")]
+LINK_NAMES = {"instagram": "Instagram", "musicbrainz": "MusicBrainz", "discogs": "Discogs", "wikidata": "Wikidata",
+              "spotify": "Spotify", "apple.com": "Apple Music", "deezer": "Deezer", "tidal": "Tidal", "youtube": "YouTube",
+              "soundcloud": "SoundCloud", "bandcamp": "Bandcamp", "tiktok": "TikTok"}
+LISTEN_SITES = ("spotify", "apple.com", "deezer", "tidal", "youtube", "soundcloud", "bandcamp", "amazon")
+
+
+def link_name(u):
+    return next((n for k, n in LINK_NAMES.items() if k in u), re.sub(r"^https?://(www\.)?", "", u).split("/")[0])
+
+
+def spotify_embed(rel):
+    sp = next((l["url"] for l in rel["links"] if "open.spotify.com/" in l["url"]), None)
+    m = sp and re.search(r"open\.spotify\.com/(album|track|playlist)/([A-Za-z0-9]+)", sp)
+    return f"https://open.spotify.com/embed/{m.group(1)}/{m.group(2)}?utm_source=3rdrecords&theme=0" if m else None
+
+
+def year_of(rel):
+    return dt.date.fromisoformat(rel["date"]).year
+
+
+def ldjson(graph):
+    return ('<script type="application/ld+json">'
+            + json.dumps({"@context": "https://schema.org", "@graph": [clean(g) for g in graph]}, ensure_ascii=False, separators=(",", ":"))
+            + "</script>")
+
+
+LABEL_REF = {"@type": "Organization", "@id": f"{D}/#label", "name": L["name"], "url": f"{D}/", "sameAs": L["sameAs"]}
+
+
+def crumbs_ld(items):
+    return {"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": k, "name": n, "item": f"{D}{u}"} for k, (n, u) in enumerate(items, 1)]}
+
+
+def crumbs_html(items):
+    lis = "".join(f'<li><a href="{u}">{e(n)}</a></li>' for n, u in items[:-1])
+    return f'<nav aria-label="Breadcrumb"><ol class="crumbs up">{lis}<li aria-current="page">{e(items[-1][0])}</li></ol></nav>'
+
+
+def page_ld(path, title, desc, typ="WebPage", **extra):
+    return dict({"@type": typ, "@id": f"{D}{path}", "url": f"{D}{path}", "name": title, "description": desc,
+                 "inLanguage": "en", "isPartOf": {"@id": f"{D}/#website"}}, **extra)
+
+
 def head(title, desc, canonical=True, robots="index,follow,max-image-preview:large", path="/", image=None, og_type="website", image_alt=None):
     p = ['<!doctype html><html lang="en"><head><meta charset="utf-8">',
          '<meta name="viewport" content="width=device-width,initial-scale=1">',
@@ -273,164 +550,352 @@ def head(title, desc, canonical=True, robots="index,follow,max-image-preview:lar
           '<link rel="icon" href="/favicon.svg" type="image/svg+xml">',
           '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
           '<link rel="preload" href="/fonts/avigea.woff2" as="font" type="font/woff2" crossorigin>',
-          f"<style>{CSS}</style>"]
+          f"<style>{CSS}</style>",
+          f'<script src="/js/site.js?v={JS_VER}" defer></script>']
     return "".join(p)
 
 
-CENTER = ' class="c"'
-SAME_NAMES = {"instagram": "Instagram", "musicbrainz": "MusicBrainz", "discogs": "Discogs", "wikidata": "Wikidata"}
+def top(cur=None):
+    cur_attr = ' aria-current="page"'
+    links = "".join(
+        f'<a href="{u}"{cur_attr if key == cur else ""}><i>{k:02d}</i>{n}</a>'
+        for k, (n, u, key) in enumerate(NAV, 1))
+    return (f'<header class="top"><a class="brand" href="/" aria-label="{e(L["name"])} home">{circle(C["orange"], ref=True)}'
+            f'<span class="up">{e(L["name"])}</span></a>'
+            f'<nav class="nav up" id="nav" aria-label="Main">{links}</nav>'
+            '<button class="menu up" type="button" aria-expanded="false" aria-controls="nav"><span>Menu</span><i aria-hidden="true"></i></button>'
+            '</header>')
 
+
+def footer(cta=True):
+    year = max(year_of(R), dt.date.today().year)
+    pages = "".join(f'<li><a href="{u}">{n}</a></li>' for n, u, _ in NAV)
+    arts = "".join(f'<li><a href="{artist_url(a)}">{e(a["name"])}</a></li>' for a in ARTISTS)
+    else_ = "".join(f'<li><a href="{e(u)}">{link_name(u)}</a></li>' for u in L["sameAs"])
+    more = (f'<li><a href="mailto:{L["contact"]}">{L["contact"]}</a></li>'
+            f'<li><a href="/portfolio/leadmajor/">{e(CB["name"])} portfolio</a></li>')
+    return (
+        '<footer class="foot">'
+        + ('<div class="foot-cta reveal"><div><p class="kick up">Get in touch</p><h2>Contact</h2></div>'
+           f'<div class="mailbox"><a class="big-mail" href="mailto:{L["contact"]}">{L["contact"]}</a>'
+           f'<button class="btn up magnet" type="button" data-copy="{L["contact"]}"><span>Copy</span></button></div></div>' if cta else "")
+        + '<div class="foot-grid">'
+        + f'<div><p class="fh up">Pages</p><ul>{pages}</ul></div>'
+        + f'<div><p class="fh up">Artists</p><ul>{arts}</ul></div>'
+        + f'<div><p class="fh up">Elsewhere</p><ul>{else_}</ul></div>'
+        + f'<div><p class="fh up">Contact</p><ul>{more}</ul></div></div>'
+        + f'<div class="legal up"><span>© {year} {e(L["name"])} · Independent record label created by {e(CB["name"])}</span>'
+        + f'<button type="button" data-totop>Back to top {icon("up")}</button></div>'
+        + '</footer>')
+
+
+def bar():
+    t = e(R["title"])
+    first = R["links"][0]
+    apple = next((l for l in R["links"] if l["name"] == "Apple Music"), None)
+    links = f'<a href="{e(first["url"])}">{e(first["name"])}</a>' + (f'<a href="{e(apple["url"])}">Apple Music</a>' if apple else "")
+    emb = spotify_embed(R)
+    pp = (f'<button class="pp" type="button" data-dock="{e(emb)}" data-title="{t} by {e(R["artist"])} on Spotify" '
+          f'aria-expanded="false" aria-controls="dock" aria-label="Play {t} by {e(R["artist"])}">{icon("play")}</button>') if emb else ""
+    return (f'<aside class="bar up" aria-label="Latest release">{pp}<b>Out now</b>'
+            f'<i><a href="{rel_url(R)}">{e(R["artist"])} — {t}</a></i><span>{links}</span></aside>'
+            + ('<div class="dock" id="dock" hidden><button type="button" data-undock aria-label="Close player">'
+               + icon("x") + '</button><div class="dock-f"></div></div>' if emb else ""))
+
+
+def shell(title, desc, path, main, graph, cur=None, cta=True, **meta):
+    return (head(title, desc, path=path, **meta) + ldjson(graph) + '</head><body>'
+            + SYMBOLS + '<a class="skip up" href="#main">Skip to content</a>'
+            + '<div class="progress" aria-hidden="true"></div><div class="glow" aria-hidden="true"></div>'
+            + top(cur) + f'<main id="main">{main}</main>' + footer(cta) + bar() + '</body></html>\n')
+
+
+def listen_list(rel):
+    t = e(rel["title"])
+    return (f'<ul class="listen" aria-label="Listen to {t}">' + "".join(
+        f'<li><a href="{e(l["url"])}"><span class="pf">{e(l["name"])}</span>'
+        f'<span class="act up">{"Watch" if "watch?v=" in l["url"] else "Listen"}'
+        f'<span class="sr">{"" if "watch?v=" in l["url"] else " to"} {t} on {e(l["name"])}</span>{icon("out")}</span></a></li>'
+        for l in rel["links"]) + '</ul>')
+
+
+def player(rel):
+    emb = spotify_embed(rel)
+    if not emb:
+        return ""
+    t = e(rel["title"])
+    return (f'<div class="player"><button type="button" data-embed="{e(emb)}" data-title="{t} by {e(rel["artist"])} on Spotify">'
+            f'<span class="pp">{icon("play")}</span><span><b>Play {t} here</b>'
+            '<small class="up">Loads the Spotify player</small></span></button></div>')
+
+
+def by_links(rel):
+    by_html = e(rel["artist"])
+    for a in sorted(rel_artists(rel), key=lambda a: -len(a["name"])):
+        by_html = re.sub(r"(?<![\w>])" + re.escape(e(a["name"])) + r"(?![\w<])", f'<a href="{artist_url(a)}">{e(a["name"])}</a>', by_html, count=1)
+    return by_html
+
+
+def release_card(rel, h="h3", sizes="(min-width:60rem) 20rem, (min-width:40rem) 45vw, 100vw"):
+    arts = "|".join(a["name"] for a in rel_artists(rel))
+    return (f'<li data-artists="{e(arts)}"><a class="card" href="{rel_url(rel)}"><span class="art tilt">'
+            f'{picture(rel, "", sizes, 640)}<span class="go">{icon("right")}</span></span>'
+            f'<{h}>{e(rel["title"])}</{h}><p class="up">{e(rel["artist"])} · {e(rel["type"])} · '
+            f'<time datetime="{rel["date"]}">{year_of(rel)}</time></p></a></li>')
+
+
+def artist_card(a, h="h3"):
+    img = (f'<img{CENTER if a.get("position") == "50% 50%" else ""} src="{e(a["image"])}" width="800" height="1000" '
+           f'alt="{e(a["alt"])}" loading="lazy" decoding="async">')
+    vid = (f'<video src="{e(a["video"])}" poster="{e(a["image"])}" autoplay muted loop playsinline '
+           'preload="metadata" aria-hidden="true"></video>') if a.get("video") else ""
+    n = len([r for r in RELEASES if a in rel_artists(r)])
+    extra = f' · {n} release{"s" if n != 1 else ""}' if n else ""
+    return (f'<li><a class="artist" href="{artist_url(a)}"><div class="art tilt">{img}{vid}'
+            f'<span class="go">{icon("right")}</span>'
+            f'<div class="info"><{h}>{e(a["name"])}</{h}><p class="up">{e(a["role"])}{extra}</p></div></div></a></li>')
+
+
+def news_list(items, h="h3"):
+    def one(n):
+        rel = next((r for r in RELEASES if r["slug"] == n.get("release")), None)
+        meta = " · ".join(x for x in [e(n["outlet"]), e(n["author"]) if n.get("author") else "",
+                                        f'<time datetime="{n["date"]}">{fmt_date(n["date"])}</time>'] if x)
+        return (f'<li><a href="{e(n["url"])}"><p class="up">{meta}</p><{h}>{e(n["title"])}</{h}>'
+                f'<p>{e(n["summary"])}</p><p class="up or">{e(n["artist"])}'
+                + (f' · {e(rel["title"])}' if rel else "") + f' · Read on {e(n["outlet"])} {icon("out")}</p></a></li>')
+    return f'<ul class="news stagger">{"".join(one(n) for n in items)}</ul>'
+
+
+def section_head(kick, title, text="", hid=None, level="h2", extra=""):
+    cls = "words" if level == "h2" else "words load"
+    idattr = f' id="{hid}"' if hid else ""
+    return (f'<div class="head"><div><p class="kick up">{e(kick)}</p>'
+            f'<{level} class="{cls}"{idattr}>{words(title)}</{level}></div>'
+            + (f'<p>{text}</p>' if text else "") + extra + '</div>')
+
+
+# ---------------------------------------------------------------- home
 
 def index():
     t = e(R["title"])
-    main_artist = artist_of(R)
-    links = "".join(
-        f'<li><a href="{e(l["url"])}"><span class="pf">{e(l["name"])}</span>'
-        f'<span class="act up">{"Watch" if "watch?v=" in l["url"] else "Listen"}'
-        f'<span class="sr">{"" if "watch?v=" in l["url"] else " to"} {t} on {e(l["name"])}</span> ↗</span></a></li>'
-        for l in R["links"])
-    def card(a):
-        img = (f'<img{CENTER if a.get("position") == "50% 50%" else ""} src="{e(a["image"])}" width="800" height="800" '
-               f'alt="{e(a["alt"])}" loading="lazy" decoding="async">')
-        vid = (f'<video src="{e(a["video"])}" poster="{e(a["image"])}" autoplay muted loop playsinline '
-               'preload="metadata" aria-hidden="true"></video>') if a.get("video") else ""
-        return (f'<li><a class="artist" href="{e(a["url"])}">{img}{vid}'
-                f'<div><h3>{e(a["name"])}</h3><p class="up">{e(a["role"])} · '
-                f'{e(a.get("linkLabel", "Official website"))} ↗</p></div></a></li>')
-    roster = "".join(card(a) for a in ARTISTS)
-    catalog = "".join(
-        f'<li id="{rel["slug"]}"><a href="{rel_url(rel)}">{picture(rel, "", "(min-width:40rem) 16rem, 45vw", 640)}'
-        f'<h3>{e(rel["title"])}</h3><p class="up">{e(rel["artist"])} · {e(rel["type"])} · <time datetime="{rel["date"]}">{dt.date.fromisoformat(rel["date"]).year}</time></p>'
-        '</a></li>'
-        for rel in RELEASES)
-    first = R["links"][0]
-    apple = next((l for l in R["links"] if l["name"] == "Apple Music"), None)
-    bar = f'<a href="{e(first["url"])}">{e(first["name"])}</a>' + (f'<a href="{e(apple["url"])}">Apple Music</a>' if apple else "")
-    year = max(dt.date.fromisoformat(R["date"]).year, dt.date.today().year)
+    n = len(RELEASES)
     items = [f"<b>{t}</b> {e(R['artist'])}", "Out now", e(L["name"]), f"Created by {e(CB['name'])}"]
-    TICK = "".join(f"<span>{i}</span>" for i in items * 2)
-    return (
-        head(TITLE, DESC)
-        + f'<script type="application/ld+json">{jsonld()}</script></head><body>'
-        + SYMBOLS + '<a class="skip up" href="#release">Skip to the latest release</a>'
-        + top()
-        + '<main>'
-        + '<section class="hero" aria-labelledby="name"><div class="hero-in">'
-        + f'<div class="stage rise" aria-hidden="true"><div class="disc">{circle(C["orange"], ref=True)}</div><div class="sheen"></div><div class="arm"></div></div>'
+    tick = "".join(f"<span>{i}</span>" for i in items * 2)
+    slides = "".join(
+        f'<li class="slide" aria-roledescription="slide" aria-label="{k} of {n}: {e(rel["title"])}">'
+        f'<a class="art tilt" href="{rel_url(rel)}" tabindex="-1">{picture(rel, "", "(min-width:48rem) 34rem, 100vw", 640)}</a>'
+        f'<div><p class="up mute">{k:02d} · {e(rel["type"])} · <time datetime="{rel["date"]}">{fmt_date(rel["date"])}</time></p>'
+        f'<h3><a href="{rel_url(rel)}">{e(rel["title"])}</a></h3><p class="by">{by_links(rel)}</p>'
+        '<p class="pills">' + "".join(f'<a href="{e(l["url"])}">{e(l["name"])} {icon("out")}</a>' for l in rel["links"][:4]) + '</p>'
+        f'<a class="btn up magnet" href="{rel_url(rel)}">Release page {icon("right")}</a></div></li>'
+        for k, rel in enumerate(RELEASES, 1))
+    on = ' class="on"'
+    backdrop = "".join(f'<img src="{e(rel["image"]["jpg"]["640"])}" alt="" loading="lazy" decoding="async"{on if k == 0 else ""}>'
+                       for k, rel in enumerate(RELEASES))
+    ctrl = (f'<div class="ctrl"><button class="round magnet" type="button" data-prev aria-label="Previous release">{icon("left")}</button>'
+            f'<span class="count up" aria-hidden="true"><b>01</b> / {n:02d}</span>'
+            f'<button class="round magnet" type="button" data-next aria-label="Next release">{icon("right")}</button></div>')
+    bars = '<div class="bars">' + "".join(
+        f'<button type="button" aria-label="Show {e(rel["title"])}" aria-current="{"true" if k == 0 else "false"}"></button>'
+        for k, rel in enumerate(RELEASES)) + '</div>'
+    main = (
+        '<section class="hero" aria-labelledby="name"><div class="hero-in">'
+        + f'<div class="stage rise" aria-hidden="true"><div class="disc">{circle(C["orange"], ref=True)}</div><div class="sheen"></div><div class="arm"></div>'
+        + '<span class="hint up">Drag to scratch</span></div>'
         + f'<h1 id="name" class="rise d2">{lockup("lockup", C["orange"], C["white"], link="/duck/")}<span class="sr">{e(L["name"])}</span></h1>'
         + f'<p class="tag up rise d3">Record label · Created by <img class="lm" src="{e(CB["logo"])}" width="24" height="24" alt=""> {e(CB["name"])}</p>'
-        + f'<p class="cta rise d3"><span class="up or">New {e(R["type"].lower())} · {e(R["artist"])}</span><a class="btn up" href="#release">Listen to {t}</a></p>'
-        + '</div>'
-        + '<div class="ticker" aria-hidden="true"><div>' + TICK * 2 + '</div></div></section>'
-        + f'<section class="sec release" id="release" aria-labelledby="release-title">'
-        + f'<div class="sleeve"><div class="rec" aria-hidden="true">{circle(C["orange"], ref=True)}</div>'
-        + picture(R, "cover", "(min-width:60rem) 42rem, calc(100vw - 2rem)") + '</div><div>'
-        + '<p class="kick up">Latest release</p>'
-        + f'<h2 class="title" id="release-title"><a href="{rel_url(R)}">{t}</a></h2>'
-        + f'<p class="by"><a href="{e(main_artist["url"])}">{e(R["artist"])}</a></p>'
+        + f'<p class="cta rise d4"><a class="btn up fill magnet" href="#release">Listen to {t} {icon("right")}</a>'
+        + f'<a class="btn up magnet" href="/catalog/">Catalog</a></p>'
+        + '</div><canvas class="eq" aria-hidden="true"></canvas>'
+        + '<div class="ticker" aria-hidden="true"><div>' + tick * 2 + '</div></div></section>'
+        # latest release
+        + '<section class="sec release" id="release" aria-labelledby="release-title">'
+        + f'<div class="sleeve reveal"><div class="rec" aria-hidden="true">{circle(C["orange"], ref=True)}</div>'
+        + picture(R, "cover", "(min-width:60rem) 42rem, calc(100vw - 2rem)") + '</div><div class="reveal">'
+        + f'<p class="kick up">Latest release · New {e(R["type"].lower())}</p>'
+        + f'<h2 class="title words" id="release-title"><a href="{rel_url(R)}">{words(R["title"])}</a></h2>'
+        + f'<p class="by">{by_links(R)}</p>'
         + f'<p class="meta up">{e(R["type"])} · <time datetime="{R["date"]}">{fmt_date(R["date"])}</time> · {e(L["name"])}</p>'
-        + f'<ul class="listen" aria-label="Listen to {t}">{links}</ul>'
+        + listen_list(R) + player(R)
+        + f'<p class="more"><a class="btn up magnet" href="{rel_url(R)}">Release page {icon("right")}</a></p>'
         + '</div></section>'
-        + f'<section class="sec" id="catalog" aria-labelledby="catalog-h"><p class="kick up">Discography</p><h2 id="catalog-h">Catalog</h2><ul class="cat">{catalog}</ul></section>'
-        + f'<section class="sec" id="artists" aria-labelledby="artists-h"><p class="kick up">Roster</p><h2 id="artists-h">Artists</h2><ul class="roster">{roster}</ul></section>'
-        + (f'<section class="sec" id="news" aria-labelledby="news-h"><p class="kick up">In the press</p><h2 id="news-h">News</h2>'
-           + news_list(NEWS[:3]) + '<p class="more"><a class="btn up" href="/news/">All news</a></p></section>' if NEWS else "")
-        + f'<section class="sec about" aria-labelledby="about-h"><div><p class="kick up">The label</p><h2 id="about-h" class="sr">About {e(L["name"])}</h2><p>{e(L["intro"])} {e(ROSTER_TXT)}</p></div>'
+        # catalog slider
+        + '<section class="sec feat" id="catalog" aria-labelledby="catalog-h">'
+        + f'<div class="backdrop" aria-hidden="true">{backdrop}</div>'
+        + section_head("Discography", "Catalog", f"Every {e(L['name'])} release so far. Use the arrows or your keyboard to browse.", "catalog-h", extra=ctrl)
+        + f'<div class="slider reveal"><ul class="track" aria-label="{e(L["name"])} releases">{slides}</ul></div>{bars}'
+        + f'<p class="more"><a class="btn up magnet" href="/catalog/">Full catalog {icon("right")}</a></p></section>'
+        # artists
+        + '<section class="sec" id="artists" aria-labelledby="artists-h">'
+        + section_head("Roster", "Artists", f"The artists releasing music on {e(L['name'])}.", "artists-h")
+        + f'<ul class="roster stagger">{"".join(artist_card(a) for a in ARTISTS)}</ul>'
+        + f'<p class="more"><a class="btn up magnet" href="/artists/">All artists {icon("right")}</a></p></section>'
+        # news
+        + ('<section class="sec" id="news" aria-labelledby="news-h">'
+           + section_head("In the press", "News", "", "news-h")
+           + news_list(NEWS[:3]) + f'<p class="more"><a class="btn up magnet" href="/news/">All news {icon("right")}</a></p></section>' if NEWS else "")
+        # about
+        + f'<section class="sec about reveal" aria-labelledby="about-h"><div><p class="kick up">The label</p><h2 id="about-h" class="sr">About {e(L["name"])}</h2>'
+        + f'<p>{e(L["intro"])} {e(ROSTER_TXT)}</p></div>'
         + f'<div class="seal" aria-hidden="true">{circle(C["choco"], ref=True)}</div></section>'
-        + '</main>'
-        + '<footer class="sec foot" id="contact">'
-        + f'<div><p class="kick up">Get in touch</p><h2>Contact</h2><a class="mail" href="mailto:{L["contact"]}">{L["contact"]}</a></div>'
-        + '<div><p class="kick up">Elsewhere</p><h2 class="sr">Links</h2><ul class="follow">'
-        + "".join(f'<li><a href="{e(u)}">{n}</a></li>' for u in L["sameAs"] for k, n in SAME_NAMES.items() if k in u)
-        + "".join(f'<li><a href="{e(a["url"])}">{e(a["name"])}</a></li>' for a in ARTISTS)
-        + '</ul></div>'
-        + f'<p class="legal up">© {year} {e(L["name"])}</p>'
-        + '</footer>'
-        + f'<aside class="bar up" aria-label="Listen now"><b>Out now</b><i>{e(R["artist"])} — {t}</i><span>{bar}</span></aside>'
-        + '</body></html>\n')
+    )
+    return shell(TITLE, DESC, "/", main, json.loads(jsonld())["@graph"])
 
 
-def top():
-    return (f'<header class="top"><a class="brand" href="/" aria-label="{e(L["name"])} home">{circle(C["orange"], ref=True)}</a>'
-            '<nav class="up" aria-label="Sections"><a class="x" href="/#release">Release</a><a href="/#catalog">Catalog</a>'
-            '<a href="/#artists">Artists</a><a href="/news/">News</a><a class="x" href="/#contact">Contact</a></nav></header>')
+# ---------------------------------------------------------------- catalog
 
+def catalog_page():
+    path = "/catalog/"
+    title = f"Catalog | {L['name']}"
+    listing = ", ".join("“" + r["title"] + "” by " + r["artist"] for r in RELEASES)
+    desc = f"The complete {L['name']} discography: {listing}. Listen on Spotify, Apple Music, Deezer and more."
+    names = []
+    for r in RELEASES:
+        for a in rel_artists(r):
+            if a["name"] not in names:
+                names.append(a["name"])
+    chips = ('<div class="chips" hidden role="group" aria-label="Filter by artist">'
+             '<button class="chip up" type="button" data-f="*" aria-pressed="true">All</button>'
+             + "".join(f'<button class="chip up" type="button" data-f="{e(nm)}" aria-pressed="false">{e(nm)}</button>' for nm in names)
+             + f'<output class="up" aria-live="polite">{len(RELEASES)} releases</output></div>')
+    items = "".join(release_card(r, "h2") for r in RELEASES)
+    crumbs = [(L["name"], "/"), ("Catalog", path)]
+    main = (f'<section class="sec page" aria-labelledby="page-h">{crumbs_html(crumbs)}'
+            + section_head("Discography", "Catalog",
+                           f"{len(RELEASES)} releases from {e(L['name'])}, newest first. Pick a release to listen on your platform.", "page-h", level="h1")
+            + chips + f'<ul class="grid stagger">{items}</ul></section>')
+    graph = [page_ld(path, title, desc, "CollectionPage", about={"@id": f"{D}/#label"}, breadcrumb=crumbs_ld(crumbs),
+                     mainEntity={"@type": "ItemList", "numberOfItems": len(RELEASES), "itemListElement": [
+                         {"@type": "ListItem", "position": k, "url": f"{D}{rel_url(r)}", "item": {"@id": f"{D}{rel_url(r)}#album"}}
+                         for k, r in enumerate(RELEASES, 1)]}),
+             LABEL_REF] + [album_node(r) for r in RELEASES]
+    return shell(title, desc, path, main, graph, cur="catalog")
+
+
+# ---------------------------------------------------------------- release
 
 def release_page(rel):
     t = e(rel["title"])
     path = rel_url(rel)
     arts = rel_artists(rel)
     by = rel["artist"]
-    by_html = e(by)
-    for a in sorted(arts, key=lambda a: -len(a["name"])):
-        by_html = re.sub(r"(?<![\w>])" + re.escape(e(a["name"])) + r"(?![\w<])", f'<a href="{e(a["url"])}">{e(a["name"])}</a>', by_html, count=1)
-    links = "".join(
-        f'<li><a href="{e(l["url"])}"><span class="pf">{e(l["name"])}</span>'
-        f'<span class="act up">{"Watch" if "watch?v=" in l["url"] else "Listen"}'
-        f'<span class="sr">{"" if "watch?v=" in l["url"] else " to"} {t} on {e(l["name"])}</span> ↗</span></a></li>'
-        for l in rel["links"])
-    others = [r for r in RELEASES if r is not rel]
+    k = RELEASES.index(rel)
+    prev_r, next_r = RELEASES[(k - 1) % len(RELEASES)], RELEASES[(k + 1) % len(RELEASES)]
     press = [n for n in NEWS if n.get("release") == rel["slug"]]
-    more = "".join(
-        f'<li><a href="{rel_url(r)}">{picture(r, "", "(min-width:40rem) 16rem, 45vw", 640)}'
-        f'<h3>{e(r["title"])}</h3><p class="up">{e(r["artist"])} · {e(r["type"])} · <time datetime="{r["date"]}">{dt.date.fromisoformat(r["date"]).year}</time></p></a></li>'
-        for r in others)
+    others = [r for r in RELEASES if r is not rel]
     title = f"{rel['title']} – {by} | {L['name']}"
     desc = (f"“{rel['title']}”, the {rel['type'].lower()} by {by}, released on {fmt_date(rel['date'])} by {L['name']}, "
             f"the independent record label created by {CB['name']}. Listen on {', '.join(l['name'] for l in rel['links'][:4])}.")
-    crumbs = {"@type": "BreadcrumbList", "itemListElement": [
-        {"@type": "ListItem", "position": 1, "name": L["name"], "item": f"{D}/"},
-        {"@type": "ListItem", "position": 2, "name": "Catalog", "item": f"{D}/#catalog"},
-        {"@type": "ListItem", "position": 3, "name": rel["title"], "item": f"{D}{path}"}]}
-    page = {"@type": "WebPage", "@id": f"{D}{path}", "url": f"{D}{path}", "name": title, "description": desc,
-            "inLanguage": "en", "isPartOf": {"@id": f"{D}/#website"}, "about": {"@id": f"{D}{path}#album"},
-            "primaryImageOfPage": rel["image"]["jpg"]["1200"], "breadcrumb": crumbs}
-    label = {"@type": "Organization", "@id": f"{D}/#label", "name": L["name"], "url": f"{D}/", "sameAs": L["sameAs"]}
-    groups = [clean({"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"],
-                     "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", [])))}) for a in arts]
-    ld = json.dumps({"@context": "https://schema.org", "@graph": [clean(page), clean(album_node(rel)), label] + groups},
-                    ensure_ascii=False, separators=(",", ":"))
-    return (
-        head(title, desc, path=path, image=rel["image"]["jpg"]["1200"], og_type="music.album", image_alt=rel["image"]["alt"])
-        + f'<script type="application/ld+json">{ld}</script></head><body>'
-        + SYMBOLS + '<a class="skip up" href="#main">Skip to content</a>' + top()
-        + '<main id="main">'
-        + '<section class="sec release page" aria-labelledby="release-title">'
+    crumbs = [(L["name"], "/"), ("Catalog", "/catalog/"), (rel["title"], path)]
+    groups = [{"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"],
+               "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", [])))} for a in arts]
+    graph = [page_ld(path, title, desc, about={"@id": f"{D}{path}#album"}, primaryImageOfPage=rel["image"]["jpg"]["1200"],
+                     breadcrumb=crumbs_ld(crumbs)), album_node(rel), LABEL_REF] + groups
+    pager = ('<nav class="sec" aria-label="More releases"><div class="pager">'
+             f'<a href="{rel_url(prev_r)}" rel="prev"><span class="up">{icon("left")} Previous</span><b>{e(prev_r["title"])}</b></a>'
+             f'<a href="{rel_url(next_r)}" rel="next"><span class="up">Next {icon("right")}</span><b>{e(next_r["title"])}</b></a>'
+             '</div></nav>') if len(RELEASES) > 1 else ""
+    main = (
+        '<section class="sec release page" aria-labelledby="release-title">'
         + f'<div class="sleeve"><div class="rec" aria-hidden="true">{circle(C["orange"], ref=True)}</div>'
         + picture(rel, "cover", "(min-width:60rem) 42rem, calc(100vw - 2rem)").replace(' loading="lazy"', ' fetchpriority="high"') + '</div><div>'
-        + f'<nav aria-label="Breadcrumb"><ol class="crumbs up"><li><a href="/">{e(L["name"])}</a></li><li><a href="/#catalog">Catalog</a></li><li aria-current="page">{t}</li></ol></nav>'
-        + f'<h1 class="title" id="release-title">{t}</h1>'
-        + f'<p class="by">{by_html}</p>'
+        + crumbs_html(crumbs)
+        + f'<h1 class="title words load" id="release-title">{words(rel["title"])}</h1>'
+        + f'<p class="by">{by_links(rel)}</p>'
         + f'<p class="meta up">{e(rel["type"])} · <time datetime="{rel["date"]}">{fmt_date(rel["date"])}</time> · {e(L["name"])}</p>'
-        + f'<ul class="listen" aria-label="Listen to {t}">{links}</ul>'
-        + f'<p class="credit">“{t}” is a {e(rel["type"].lower())} by {by_html}, released on {fmt_date(rel["date"])} by '
-        + f'<a href="/">{e(L["name"])}</a>, the independent record label created by {e(CB["name"])}.'
+        + listen_list(rel) + player(rel)
+        + f'<p class="credit">“{t}” is a {e(rel["type"].lower())} by {by_links(rel)}, released on {fmt_date(rel["date"])} by '
+        + f'<a href="/">{e(L["name"])}</a>, the independent record label created by <a href="{artist_url(CB_ARTIST)}">{e(CB["name"])}</a>.'
         + (f' UPC {e(rel["upc"])}.' if rel.get("upc") else "") + '</p>'
         + '</div></section>'
-        + (f'<section class="sec" aria-labelledby="press-h"><p class="kick up">In the press</p><h2 id="press-h">Press</h2>{news_list(press)}</section>' if press else "")
-        + (f'<section class="sec" aria-labelledby="more-h"><p class="kick up">Catalog</p><h2 id="more-h">More from {e(L["name"])}</h2><ul class="cat">{more}</ul></section>' if more else "")
-        + '</main>'
-        + '<footer class="sec foot">'
-        + f'<div><p class="kick up">Get in touch</p><h2>Contact</h2><a class="mail" href="mailto:{L["contact"]}">{L["contact"]}</a></div>'
-        + f'<p class="legal up">© {max(dt.date.fromisoformat(rel["date"]).year, dt.date.today().year)} <a href="/">{e(L["name"])}</a></p>'
-        + '</footer></body></html>\n')
+        + pager
+        + (f'<section class="sec" aria-labelledby="press-h">{section_head("In the press", "Press", "", "press-h")}{news_list(press)}</section>' if press else "")
+        + (f'<section class="sec" aria-labelledby="more-h">{section_head("Catalog", "More releases", "", "more-h")}'
+           f'<ul class="grid stagger">{"".join(release_card(r) for r in others)}</ul></section>' if others else "")
+    )
+    return shell(title, desc, path, main, graph, cur="release" if rel is R else "catalog",
+                 image=rel["image"]["jpg"]["1200"], og_type="music.album", image_alt=rel["image"]["alt"])
 
 
-def news_list(items):
-    def one(n):
-        rel = next((r for r in RELEASES if r["slug"] == n.get("release")), None)
-        meta = " · ".join(x for x in [e(n["outlet"]), e(n["author"]) if n.get("author") else "",
-                                        f'<time datetime="{n["date"]}">{fmt_date(n["date"])}</time>'] if x)
-        return (f'<li><a href="{e(n["url"])}"><p class="up">{meta}</p><h3>{e(n["title"])}</h3>'
-                f'<p>{e(n["summary"])}</p><p class="up or">{e(n["artist"])}'
-                + (f' · {e(rel["title"])}' if rel else "") + ' · Read on ' + e(n["outlet"]) + ' ↗</p></a></li>')
-    return f'<ul class="news">{"".join(one(n) for n in items)}</ul>'
+# ---------------------------------------------------------------- artists
 
+def artists_page():
+    path = "/artists/"
+    title = f"Artists | {L['name']}"
+    desc = f"The {L['name']} roster: {NAMES}. Profiles, releases and official links."
+    crumbs = [(L["name"], "/"), ("Artists", path)]
+    main = (f'<section class="sec page" aria-labelledby="page-h">{crumbs_html(crumbs)}'
+            + section_head("Roster", "Artists", f"{len(ARTISTS)} artists release music on {e(L['name'])}. Open a profile for releases, press and official links.", "page-h", level="h1")
+            + f'<ul class="roster stagger">{"".join(artist_card(a, "h2") for a in ARTISTS)}</ul></section>')
+    graph = [page_ld(path, title, desc, "CollectionPage", about={"@id": f"{D}/#label"}, breadcrumb=crumbs_ld(crumbs),
+                     mainEntity={"@type": "ItemList", "numberOfItems": len(ARTISTS), "itemListElement": [
+                         {"@type": "ListItem", "position": k, "url": f"{D}{artist_url(a)}", "item": {"@id": a["id"]}}
+                         for k, a in enumerate(ARTISTS, 1)]}), LABEL_REF] + [
+        {"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"], "genre": a.get("genre"),
+         "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", []))), "recordLabel": {"@id": f"{D}/#label"}} for a in ARTISTS]
+    return shell(title, desc, path, main, graph, cur="artists")
+
+
+def artist_page(a):
+    path = artist_url(a)
+    rels = [r for r in RELEASES if a in rel_artists(r)]
+    press = [n for n in NEWS if n.get("artist") == a["name"]]
+    founder = CB and a["name"] == CB["name"]
+    title = f"{a['name']} | {L['name']}"
+    desc = (f"{a['name']}, {a['role'][0].lower() + a['role'][1:]}, on {L['name']}"
+            + (f", the label {a['name']} created" if founder else "")
+            + (f". Releases: {', '.join('“' + r['title'] + '”' for r in rels)}." if rels else ".")
+            + " Official links and press.")
+    links = [(a.get("linkLabel", "Official website"), a["url"])]
+    if founder:
+        links.append(("Portfolio", "/portfolio/leadmajor/"))
+    links += [(link_name(u), u) for u in a.get("sameAs", []) if u != a["url"]]
+    lis = "".join(
+        f'<li><a href="{e(u)}"><span class="pf">{e(n)}</span><span class="act up">'
+        f'{"Listen" if any(s in u for s in LISTEN_SITES) else "Visit"}<span class="sr"> {e(a["name"])} on {e(n)}</span>'
+        f'{icon("right" if u.startswith("/") else "out")}</span></a></li>' for n, u in links)
+    img = (f'<img{CENTER if a.get("position") == "50% 50%" else ""} src="{e(a["image"])}" width="800" height="1000" '
+           f'alt="{e(a["alt"])}" fetchpriority="high" decoding="async">')
+    vid = (f'<video src="{e(a["video"])}" poster="{e(a["image"])}" autoplay muted loop playsinline '
+           'preload="metadata" aria-hidden="true"></video>') if a.get("video") else ""
+    crumbs = [(L["name"], "/"), ("Artists", "/artists/"), (a["name"], path)]
+    others = [x for x in ARTISTS if x is not a]
+    meta = [e(a["role"])]
+    on_label = "On " + e(L["name"]) + "." 
+    main = (
+        '<section class="sec page profile" aria-labelledby="page-h">'
+        + f'<div class="art tilt portrait">{img}{vid}</div><div>'
+        + crumbs_html(crumbs)
+        + f'<p class="kick up">{"Founder · " if founder else ""}{e(L["name"])} artist</p>'
+        + f'<h1 class="words load" id="page-h">{words(a["name"])}</h1>'
+        + f'<p class="role">{" · ".join(meta)}</p>'
+        + f'<p class="meta up">{len(rels)} release{"s" if len(rels) != 1 else ""} on {e(L["name"])}'
+        + (f' · {len(press)} press article{"s" if len(press) != 1 else ""}' if press else "") + '</p>'
+        + f'<ul class="listen" aria-label="{e(a["name"])} links">{lis}</ul></div></section>'
+        + (f'<section class="sec" aria-labelledby="rel-h">{section_head("Discography", "Releases", on_label, "rel-h")}'
+           f'<ul class="grid stagger">{"".join(release_card(r) for r in rels)}</ul></section>' if rels else "")
+        + (f'<section class="sec" aria-labelledby="press-h">{section_head("In the press", "Press", "", "press-h")}{news_list(press)}</section>' if press else "")
+        + (f'<section class="sec" aria-labelledby="oth-h">{section_head("Roster", "More artists", "", "oth-h")}'
+           f'<ul class="roster stagger">{"".join(artist_card(x) for x in others)}</ul></section>' if others else "")
+    )
+    person = clean({"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"], "description": a["role"],
+                    "image": a["image"] if a["image"].startswith("http") else f"{D}{a['image']}", "genre": a.get("genre"),
+                    "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", []) + ([f"{D}/portfolio/leadmajor/"] if founder else []))),
+                    "recordLabel": {"@id": f"{D}/#label"},
+                    "album": [{"@id": f"{D}{rel_url(r)}#album"} for r in rels] or None})
+    graph = [page_ld(path, title, desc, "ProfilePage", mainEntity={"@id": a["id"]}, breadcrumb=crumbs_ld(crumbs)),
+             person, LABEL_REF] + [album_node(r) for r in rels]
+    return shell(title, desc, path, main, graph, cur="artists",
+                 image=a["image"] if a["image"].startswith("http") else f"{D}{a['image']}", og_type="profile", image_alt=a["alt"])
+
+
+# ---------------------------------------------------------------- news / contact / 404
 
 def news_page():
     path = "/news/"
     title = f"News & Press | {L['name']}"
-    desc = (f"News and press coverage of {L['name']} and its artists {NAMES}: reviews, features and release announcements.")
+    desc = f"News and press coverage of {L['name']} and its artists {NAMES}: reviews, features and release announcements."
     arts = {a["name"]: a for a in ARTISTS}
     items = []
     for i, n in enumerate(NEWS, 1):
@@ -439,37 +904,40 @@ def news_page():
                "author": {"@type": "Person", "name": n["author"]} if n.get("author") else None,
                "about": {"@id": arts[n["artist"]]["id"]} if n["artist"] in arts else {"@type": "MusicGroup", "name": n["artist"]}}
         items.append({"@type": "ListItem", "position": i, "item": art})
-    ld = json.dumps({"@context": "https://schema.org", "@graph": [clean({
-        "@type": "CollectionPage", "@id": f"{D}{path}", "url": f"{D}{path}", "name": title, "description": desc,
-        "inLanguage": "en", "isPartOf": {"@id": f"{D}/#website"}, "about": {"@id": f"{D}/#label"},
-        "mainEntity": {"@type": "ItemList", "itemListElement": items},
-        "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [
-            {"@type": "ListItem", "position": 1, "name": L["name"], "item": f"{D}/"},
-            {"@type": "ListItem", "position": 2, "name": "News", "item": f"{D}{path}"}]}}),
-        {"@type": "Organization", "@id": f"{D}/#label", "name": L["name"], "url": f"{D}/", "sameAs": L["sameAs"]}]},
-        ensure_ascii=False, separators=(",", ":"))
-    return (
-        head(title, desc, path=path)
-        + f'<script type="application/ld+json">{ld}</script></head><body>'
-        + SYMBOLS + '<a class="skip up" href="#main">Skip to content</a>' + top()
-        + '<main id="main"><section class="sec page" aria-labelledby="news-h">'
-        + f'<nav aria-label="Breadcrumb"><ol class="crumbs up"><li><a href="/">{e(L["name"])}</a></li><li aria-current="page">News</li></ol></nav>'
-        + '<h1 class="title" id="news-h">News</h1>'
-        + f'<p class="lead">Press coverage, reviews and features about {e(L["name"])} artists. Links open the original articles.</p>'
-        + news_list(NEWS)
-        + '</section></main>'
-        + '<footer class="sec foot">'
-        + f'<div><p class="kick up">Press enquiries</p><h2>Contact</h2><a class="mail" href="mailto:{L["contact"]}">{L["contact"]}</a></div>'
-        + f'<p class="legal up">© {dt.date.today().year} <a href="/">{e(L["name"])}</a></p>'
-        + '</footer></body></html>\n')
+    crumbs = [(L["name"], "/"), ("News", path)]
+    main = (f'<section class="sec page" aria-labelledby="page-h">{crumbs_html(crumbs)}'
+            + section_head("In the press", "News", f"Press coverage, reviews and features about {e(L['name'])} artists. Links open the original articles.", "page-h", level="h1")
+            + news_list(NEWS, "h2") + '</section>')
+    graph = [page_ld(path, title, desc, "CollectionPage", about={"@id": f"{D}/#label"}, breadcrumb=crumbs_ld(crumbs),
+                     mainEntity={"@type": "ItemList", "itemListElement": items}), LABEL_REF]
+    return shell(title, desc, path, main, graph, cur="news")
+
+
+def contact_page():
+    path = "/contact/"
+    title = f"Contact | {L['name']}"
+    desc = f"Contact {L['name']}, the independent record label created by {CB['name']}: {L['contact']}."
+    crumbs = [(L["name"], "/"), ("Contact", path)]
+    links = "".join(f'<li><a href="{e(u)}">{link_name(u)} {icon("out")}</a></li>' for u in L["sameAs"])
+    main = (f'<section class="sec page" aria-labelledby="page-h">{crumbs_html(crumbs)}'
+            + section_head("Get in touch", "Contact", f"Press, partnerships or questions about {e(L['name'])} and its artists: write to us.", "page-h", level="h1")
+            + f'<div class="mailbox reveal"><a class="big-mail" href="mailto:{L["contact"]}">{L["contact"]}</a>'
+            + f'<button class="btn up magnet" type="button" data-copy="{L["contact"]}"><span>Copy address</span></button></div></section>'
+            + f'<section class="sec about reveal" aria-labelledby="about-h"><div><p class="kick up">The label</p><h2 id="about-h" class="sr">About {e(L["name"])}</h2>'
+            + f'<p>{e(L["intro"])} {e(ROSTER_TXT)}</p></div><div class="seal" aria-hidden="true">{circle(C["choco"], ref=True)}</div></section>'
+            + f'<section class="sec" aria-labelledby="else-h">{section_head("Elsewhere", "Follow", "", "else-h")}<ul class="links-big stagger">{links}</ul></section>')
+    graph = [page_ld(path, title, desc, "ContactPage", about={"@id": f"{D}/#label"}, breadcrumb=crumbs_ld(crumbs)),
+             dict(LABEL_REF, email=L["contact"], contactPoint={"@type": "ContactPoint", "email": L["contact"], "contactType": "customer support"})]
+    return shell(title, desc, path, main, graph, cur="contact", cta=False)
 
 
 def notfound():
     return (head(f"Page not found – {L['name']}", "This page does not exist.", canonical=False, robots="noindex")
-            + '</head><body><main class="nf">'
+            + '</head><body>' + SYMBOLS + top()
+            + '<main class="nf" id="main">'
             + f'<div class="seal" aria-hidden="true">{circle(C["orange"])}</div>'
             + '<p class="up or">Error 404</p><h1>Page not found</h1>'
-            + f'<p><a class="btn up" href="/">Back to {e(L["name"])}</a></p></main></body></html>\n')
+            + f'<p class="cta"><a class="btn up fill" href="/">Back to {e(L["name"])}</a><a class="btn up" href="/catalog/">Catalog</a></p></main></body></html>\n')
 
 
 def images():
@@ -492,24 +960,27 @@ def main():
     if DIST.exists():
         shutil.rmtree(DIST)
     DIST.mkdir()
-    (DIST / "index.html").write_text(index(), encoding="utf-8")
+    pages = {"/": index(), "/catalog/": catalog_page(), "/artists/": artists_page(), "/contact/": contact_page()}
+    if NEWS:
+        pages["/news/"] = news_page()
+    for rel in RELEASES:
+        pages[rel_url(rel)] = release_page(rel)
+    for a in ARTISTS:
+        pages[artist_url(a)] = artist_page(a)
+    for path, doc in pages.items():
+        out = DIST / path.strip("/")
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "index.html").write_text(doc, encoding="utf-8")
     (DIST / "404.html").write_text(notfound(), encoding="utf-8")
     (DIST / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {D}/sitemap.xml\n")
     (DIST / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        f"  <url><loc>{D}/</loc><lastmod>{TODAY}</lastmod></url>\n"
-        + "".join(f"  <url><loc>{D}{u}</loc><lastmod>{TODAY}</lastmod></url>\n" for u in ([rel_url(r) for r in RELEASES] + (["/news/"] if NEWS else [])))
+        + "".join(f"  <url><loc>{D}{u}</loc><lastmod>{TODAY}</lastmod></url>\n" for u in pages)
         + "</urlset>\n")
-    if NEWS:
-        (DIST / "news").mkdir()
-        (DIST / "news" / "index.html").write_text(news_page(), encoding="utf-8")
-    for rel in RELEASES:
-        out = DIST / rel_url(rel).strip("/")
-        out.mkdir(parents=True)
-        (out / "index.html").write_text(release_page(rel), encoding="utf-8")
     (DIST / "CNAME").write_text(D.split("://")[1] + "\n")
     (DIST / ".nojekyll").write_text("")
     shutil.copytree(ROOT / "fonts", DIST / "fonts")
+    shutil.copytree(ROOT / "js", DIST / "js")
     if (ROOT / "img").exists():
         shutil.copytree(ROOT / "img", DIST / "img")
     images()
