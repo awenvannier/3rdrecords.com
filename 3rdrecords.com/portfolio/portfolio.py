@@ -320,7 +320,7 @@ img,svg,video{display:block;max-width:100%}
 .tl .bars{justify-self:end;opacity:0;color:var(--blue)}
 .tl .cur .t{color:var(--blue)}
 .tl .cur .bars{opacity:1}
-@media (max-width:860px){.sync{grid-template-columns:1fr}.deck{position:relative;top:0}}
+@media (max-width:860px){.sync{grid-template-columns:1fr}.deck{position:relative;top:0}.tl{max-height:min(52vh,24rem);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}.tl li{scroll-margin:4px}}
 
 /* discography */
 .disco{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,3vw,40px) clamp(20px,4vw,56px)}
@@ -332,6 +332,19 @@ img,svg,video{display:block;max-width:100%}
 .dt{font-weight:500;transition:color .15s}
 .da{display:block;font-size:13px;color:var(--dim)}
 .disco .ar{color:var(--faint);font-size:13px}
+.disco details{min-width:0}
+.disco summary{list-style:none;cursor:pointer}
+.disco summary::-webkit-details-marker{display:none}
+.disco summary h3{margin:0;padding-top:7px}
+.disco .gm{display:inline-flex;align-items:baseline;gap:14px}
+.disco .mk{width:13px;height:13px;position:relative;display:inline-block;color:var(--faint)}
+.disco .mk::before,.disco .mk::after{content:"";position:absolute;background:currentColor;transition:transform .2s}
+.disco .mk::before{left:0;top:6px;width:13px;height:1px}
+.disco .mk::after{left:6px;top:0;width:1px;height:13px}
+.disco details[open] .mk::after{transform:scaleY(0)}
+.disco details[open] summary h3{color:var(--text)}
+.disco summary:hover h3,.disco summary:hover .mk{color:var(--blue)}
+.disco summary:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:6px}
 @media (max-width:980px){.disco{grid-template-columns:1fr 1fr}}
 @media (max-width:640px){.disco{grid-template-columns:1fr}}
 
@@ -453,7 +466,9 @@ function setNow(i){
   P.idx = i;
   const t = (P.list[i] && P.list[i].title) || titles[i] || 'SYNC';
   $$('[data-now]').forEach(n => n.textContent = t);
-  $$('.tl button').forEach((b, k) => b.classList.toggle('cur', k === i));
+  $$('.tl button').forEach((b, k) => { b.classList.toggle('cur', k === i);
+    if (k === i && b.closest('.tl') && b.closest('.tl').scrollHeight > b.closest('.tl').clientHeight + 4)
+      b.parentElement.scrollIntoView({block: 'nearest'}); });
 }
 function setPlaying(on){
   P.playing = on;
@@ -607,6 +622,7 @@ if ('IntersectionObserver' in window && !reduce) {
 
 /* ---------- motion layer ---------- */
 if (!reduce) {
+  if (innerWidth >= 980) $$('#discography details').forEach(d => d.open = true);
   const root = document.documentElement, orb = $('.orb'), shards = $('.shards'), glow = $('.glow-cursor');
   let raf = 0, mx = 0, my = 0;
   addEventListener('pointermove', ev => {
@@ -780,7 +796,10 @@ def page(P, I, fonts, domain, ROOT):
             f'<span class="y">{e(it[0])}</span><span><span class="dt">{e(it[1])}</span><span class="da">{e(it[2])}</span></span>'
             f'<span class="ar" aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a></li>'
             for it in g["items"])
-        disco.append(f'<div class="reveal"><h3>{e(g["group"])} <small>{len(g["items"])}</small></h3><ul>{rows}</ul></div>')
+        disco.append(
+            f'<details class="reveal">'
+            f'<summary><h3>{e(g["group"])}<span class="gm"><small>{len(g["items"])}</small>'
+            f'<i class="mk" aria-hidden="true"></i></span></h3></summary><ul>{rows}</ul></details>')
     total = sum(len(g["items"]) for g in P["discography"])
 
     facts = "".join(f'<div><strong>{e(a)}</strong><span>{e(b)}</span></div>' for a, b in P["facts"])
