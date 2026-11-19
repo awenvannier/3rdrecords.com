@@ -549,13 +549,58 @@ button[data-totop]{min-height:44px;display:inline-flex;align-items:center;gap:.5
 .cta-sub a:hover{color:var(--white);border-bottom-color:var(--orange)}
 .cta-sub .ico{width:.8rem;height:.8rem}
 /* ---- Compactage : l'accueil faisait 10,5 ecrans sur telephone ---- */
-.sec{padding-top:clamp(3rem,7vw,6rem)}
-.foot{margin-top:clamp(3.5rem,8vw,6rem)}
+.sec{padding-top:clamp(2.25rem,6vw,5rem)}
+.foot{margin-top:clamp(2.5rem,6vw,5rem)}
 .sec+.sec{border-top:1px solid var(--line)}
 @media (min-width:23rem){.roster{grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}}
 @media (min-width:60rem){.roster{grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem}}
 @media (min-width:60rem){.hero{min-height:min(calc(100svh - 3.5rem),42rem)}.hero-in{padding-top:5rem;padding-bottom:1rem}}
 @media (max-width:60rem){.hero-in{padding-top:4.75rem;padding-bottom:.5rem;gap:clamp(.9rem,2.6vh,1.6rem)}.cta-sub{margin-top:0}}
+/* ---- Lisibilite : plancher de 15px sur tout texte destine a etre lu ----
+   Le site tenait son identite typographique sur du 11px tres espace. Mesure :
+   87 elements sous 15px sur l'accueil, 251 sur le portfolio. Sous ce seuil un
+   texte n'est pas lu petit, il est saute, et ce 11px portait des informations
+   de decision : les genres du label, la date de sortie, les libelles de bouton.
+   L'interlettrage est reduit en compensation (.24em -> .16em), ce qui garde
+   une largeur de bloc comparable pour des lettres nettement plus grandes. */
+.up{font-size:.9375rem;letter-spacing:.16em}
+.nav i{font-size:.9375rem;letter-spacing:.12em}
+.ticker span{font-size:.9375rem;letter-spacing:.18em}
+.plat{font-size:.9375rem;letter-spacing:.1em}
+.lab label,.lab .lbl{font-size:.9375rem;letter-spacing:.1em}
+.subform legend i{font-size:.9375rem}
+.field small,.err,.pills a{font-size:.9375rem}
+.subform .privacy,.subform .privacy a{font-size:.9375rem}
+.cta-sub a{font-size:.9375rem;letter-spacing:.14em}
+.steps span,.pill span{font-size:1rem}
+/* le titre du hero garde sa graisse mais le sous-titre devient lisible */
+.tag{font-size:.9375rem;letter-spacing:.14em}
+.pills-note{margin:.35rem 0 1rem;color:var(--grey)}
+/* La barre lecteur passait sur deux lignes une fois le texte a 15px.
+   Sous 27rem on ne garde que l'essentiel : le bouton, le titre et Spotify. */
+.bar{gap:.6rem;flex-wrap:nowrap}
+.bar b,.bar span a{white-space:nowrap}
+.bar span{display:flex;gap:.9rem;margin-left:auto}
+@media (max-width:30rem){.bar span a:nth-child(n+2){display:none}}
+@media (max-width:23rem){.bar b{display:none}}
+@media (max-width:23rem){.bar{gap:.45rem}}
+/* le sous-titre du hero tenait sur deux lignes, il en prenait trois */
+.tag{line-height:1.45;max-width:22em;margin-inline:auto}
+/* Sur les tres petits ecrans (320x568), le bouton Catalog et le lien Submit
+   etaient coupes par le bas de la fenetre. Le vinyle cede la place : rien
+   d'essentiel ni de cliquable ne doit etre a moitie visible. */
+@media (max-width:23.5rem){
+  .stage{width:min(52vw,17rem)}
+  .hero-in{gap:.7rem;padding-top:4.25rem}
+  .tag{letter-spacing:.1em;line-height:1.4}
+}
+/* Faux plancher : le hero se terminait pile au-dessus de la barre lecteur,
+   ce qui fait croire que la page est finie. Le bandeau defilant doit mordre
+   sur la ligne de flottaison pour signaler qu'il y a une suite. */
+@media (max-width:60rem){
+  .stage{width:min(58vw,19rem)}
+  .hero-in{gap:.55rem;padding-bottom:.25rem}
+}
 .privacy{margin:0 0 1.5rem;color:var(--grey);font-size:.875rem;max-width:36em}
 .send{min-height:3.5rem;padding:0 2.1rem}
 .send:disabled{opacity:.6;cursor:wait}
@@ -630,6 +675,25 @@ html:not(.js) .reveal,html:not(.js) .stagger>*,html:not(.js) .words:not(.load) .
 .foot-cta{grid-template-columns:minmax(0,1fr) auto;align-items:end}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}.rec{transform:translateX(40%)}.artist video,.portrait video{display:none}.seal svg{transform:none}}
+
+/* Fenetres courtes (iPhone SE et compagnie) : c'est la hauteur qui manque,
+   pas la largeur. Le vinyle cede la place aux trois appels a l'action, qui
+   doivent tous tenir au-dessus du pli, bandeau mordant juste en dessous. */
+@media (max-height:46rem){
+  /* le hero s'arrete un cran avant la barre : le bandeau remonte dans le champ
+     et signale qu'il y a une suite, au lieu d'un plancher net */
+  .hero{min-height:calc(100svh - 3.5rem - 1.75rem)}
+  .eq{height:1.5rem}
+  .stage{width:min(34vw,11rem)}
+  .hero-in{gap:.45rem;padding-top:3.5rem;padding-bottom:.25rem}
+  .tag{letter-spacing:.08em;line-height:1.35;max-width:26em}
+  h1#name{margin:0}
+}
+@media (max-height:38rem){
+  .eq{height:.75rem}
+  .stage{width:min(26vw,8rem)}
+  .hero-in{gap:.35rem;padding-top:3.25rem}
+}
 """.strip()
 CSS = "".join(line.strip() for line in CSS.splitlines())
 CSS_HASH = base64.b64encode(hashlib.sha256(CSS.encode()).digest()).decode()
@@ -859,8 +923,8 @@ def release_card(rel, h="h3", sizes="(min-width:60rem) 20rem, (min-width:40rem) 
 def artist_card(a, h="h3"):
     img = (f'<img{CENTER if a.get("position") == "50% 50%" else ""} src="{e(a["image"])}" width="800" height="1000" '
            f'alt="{e(a["alt"])}" loading="lazy" decoding="async">')
-    vid = (f'<video src="{e(a["video"])}" poster="{e(a["image"])}" autoplay muted loop playsinline '
-           'preload="metadata" aria-hidden="true"></video>') if a.get("video") else ""
+    vid = ""  # autoplay retire le 19/11/2026 : le poster suffit, et une boucle
+               # perpetuelle est du mouvement que personne n'a demande (COGA).
     n = len([r for r in RELEASES if a in rel_artists(r)])
     extra = f' · {n} release{"s" if n != 1 else ""}' if n else ""
     return (f'<li><a class="artist" href="{artist_url(a)}"><div class="art tilt">{img}{vid}'
@@ -900,7 +964,7 @@ def index():
         f'<a class="art tilt" href="{rel_url(rel)}" tabindex="-1">{picture(rel, "", "(min-width:48rem) 34rem, 100vw", 640)}</a>'
         f'<div><p class="up mute">{k:02d} · {e(rel["type"])} · <time datetime="{rel["date"]}">{fmt_date(rel["date"])}</time></p>'
         f'<h3><a href="{rel_url(rel)}">{e(rel["title"])}</a></h3><p class="by">{by_links(rel)}</p>'
-        '<p class="pills">' + "".join(f'<a href="{e(l["url"])}">{e(l["name"])} {icon("out")}</a>' for l in rel["links"][:4]) + '</p>'
+        f'<p class="pills-note up mute">{len(rel["links"])} platforms</p>'
         f'<a class="btn up magnet" href="{rel_url(rel)}">Release page {icon("right")}</a></div></li>'
         for k, rel in enumerate(PAST, 1))
     on = ' class="on"'
@@ -943,12 +1007,12 @@ def index():
         # artists
         + '<section class="sec" id="artists" aria-labelledby="artists-h">'
         + section_head("Artist pool", "Artists", e(POOL_TXT), "artists-h")
-        + f'<ul class="roster stagger">{"".join(artist_card(a) for a in ARTISTS)}</ul>'
+        + f'<ul class="roster stagger">{"".join(artist_card(a) for a in ARTISTS[:4])}</ul>'
         + f'<p class="more"><a class="btn up magnet" href="/artists/">All artists {icon("right")}</a></p></section>'
         # news
         + ('<section class="sec" id="news" aria-labelledby="news-h">'
            + section_head("In the press", "News", "", "news-h")
-           + news_list(NEWS[:3]) + f'<p class="more"><a class="btn up magnet" href="/news/">All news {icon("right")}</a></p></section>' if NEWS else "")
+           + news_list(NEWS[:2]) + f'<p class="more"><a class="btn up magnet" href="/news/">All news {icon("right")}</a></p></section>' if NEWS else "")
         + submit_cta()
         # about
         + f'<section class="sec about reveal" aria-labelledby="about-h"><div><p class="kick up">The label</p><h2 id="about-h" class="sr">About {e(L["name"])}</h2>'
@@ -1074,8 +1138,7 @@ def artist_page(a):
         f'{icon("right" if u.startswith("/") else "out")}</span></a></li>' for n, u in links)
     img = (f'<img{CENTER if a.get("position") == "50% 50%" else ""} src="{e(a["image"])}" width="800" height="1000" '
            f'alt="{e(a["alt"])}" fetchpriority="high" decoding="async">')
-    vid = (f'<video src="{e(a["video"])}" poster="{e(a["image"])}" autoplay muted loop playsinline '
-           'preload="metadata" aria-hidden="true"></video>') if a.get("video") else ""
+    vid = ""  # autoplay retire le 19/11/2026, meme raison que sur la carte artiste
     crumbs = [(L["name"], "/"), ("Artists", "/artists/"), (a["name"], path)]
     others = [x for x in ARTISTS if x is not a]
     meta = [e(a["role"])]

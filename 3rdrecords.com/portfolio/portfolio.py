@@ -430,6 +430,12 @@ img,svg,video{display:block;max-width:100%}
   .emblem svg{opacity:1}
   .emblem video{display:none}
 }
+
+/* audit 19/11/2026 : plancher de 15px sur tout texte destine a etre lu.
+   251 elements de cette page passaient sous ce seuil. */
+.mono,.chip,.gate-hint,.quiet,.tl .n,.disco h3 small,.disco .y{font-size:15px}
+.btn,.btn-s,.enter,.nav a,.count,.da,.disco .ar,.facts span,.foot{font-size:15px}
+.y,.da,.ar,.facts span,.foot span,.foot a,.foot *{font-size:15px}
 """.strip()
 
 
