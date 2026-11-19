@@ -18,6 +18,66 @@ NEWS = sorted(S.get("news", []), key=lambda n: n["date"], reverse=True)
 R = RELEASES[0]
 e = lambda s: html.escape(s, quote=True)
 TODAY = dt.date.today().isoformat()
+
+
+def _localise_images():
+    """Telecharge une fois les pochettes et les photos d'artistes, puis les sert depuis le site.
+
+    Sans ca, chaque affichage de page envoie l'adresse IP du visiteur a Apple et a Spotify,
+    ce que la page legal dit expressement ne pas faire. Les fichiers sont mis en cache dans
+    .imgcache/ et copies dans dist/img/ au moment du build. Pour remplacer une image par la
+    tienne, depose img/src/<cle>.webp (ou .jpg/.png) : elle est utilisee au lieu du telechargement.
+    """
+    import urllib.request
+    from PIL import Image
+    cache = ROOT / ".imgcache"
+    cache.mkdir(exist_ok=True)
+    ua = {"User-Agent": "Mozilla/5.0 (3rdrecords.com build)"}
+
+    def source_bytes(key, url):
+        for ext in (".webp", ".jpg", ".jpeg", ".png"):
+            own = ROOT / "img" / "src" / (key + ext)
+            if own.exists():
+                return own.read_bytes()
+        with urllib.request.urlopen(urllib.request.Request(url, headers=ua), timeout=25) as r:
+            return r.read()
+
+    def render(key, url, widths, fmts=("webp",)):
+        out = {}
+        im = None
+        for w in widths:
+            for fmt in fmts:
+                name = f"{key}-{w}.{fmt}"
+                f = cache / name
+                if not f.exists():
+                    if im is None:
+                        im = Image.open(io.BytesIO(source_bytes(key, url))).convert("RGB")
+                    w0, h0 = im.size
+                    small = im.resize((w, round(h0 * w / w0)), Image.LANCZOS)
+                    if fmt == "webp":
+                        small.save(f, "WEBP", quality=82, method=6)
+                    else:
+                        small.save(f, "JPEG", quality=84, optimize=True, progressive=True)
+                out.setdefault(fmt, {})[str(w)] = f"/img/{name}"
+        return out
+
+    for rel in RELEASES:
+        im = rel.get("image") or {}
+        src = (im.get("jpg") or {}).get("1200") or (im.get("webp") or {}).get("1200") or ""
+        if not src.startswith("http"):
+            continue
+        local = render(rel["slug"], src, (640, 1200), ("webp", "jpg"))
+        im["webp"], im["jpg"] = local["webp"], local["jpg"]
+
+    for a in ARTISTS:
+        url = a.get("image", "")
+        if not url.startswith("http"):
+            continue
+        key = a.get("slug") or re.sub(r"[^a-z0-9]+", "-", a["name"].lower()).strip("-")
+        a["image"] = render(key, url, (800,))["webp"]["800"]
+
+
+_localise_images()
 IMG_URLS = [u for rel in RELEASES for kind in ("jpg", "webp") for u in rel["image"].get(kind, {}).values()]
 ORIGINS = sorted({re.match(r"https://[^/]+", u).group(0) for u in IMG_URLS + [a["image"] for a in ARTISTS] if u.startswith("https://")})
 
@@ -45,11 +105,30 @@ CB = L.get("createdBy")
 GENRES = L.get("genres", [])
 GENRE_TXT = (", ".join(g.lower() for g in GENRES[:-1]) + " and " + GENRES[-1].lower()) if len(GENRES) > 1 else "".join(GENRES).lower()
 NAMES = ", ".join(a["name"] for a in ARTISTS[:-1]) + " and " + ARTISTS[-1]["name"]
+RUN_BY = L.get("runBy", "Awen Vannier")
+DISTRIBUTOR = L.get("distributor", "Identity Music")
+FIRST_YEAR = min(r["date"][:4] for r in RELEASES)
+PRESS_SOURCES = []
+for n in NEWS:
+    src = n.get("source")
+    if src and src not in PRESS_SOURCES:
+        PRESS_SOURCES.append(src)
+PRESS_TXT = (", ".join(PRESS_SOURCES[:-1]) + " and " + PRESS_SOURCES[-1]) if len(PRESS_SOURCES) > 1 else "".join(PRESS_SOURCES)
 TITLE = f"{L['name']} | Independent Record Label"
-DESC = (f"{L['name']} is an independent {GENRE_TXT} record label created by {CB['name']}. Artists featured on its releases: {NAMES}. "
-        f"Latest release: “{R['title']}” by {R['artist']}".rstrip(".") + ".")
-ROSTER_TXT = f"Artists who have taken part in its releases include {NAMES}, and the catalog counts {len(RELEASES)} releases so far."
-POOL_TXT = f"Not an exclusive roster: these are the artists who have taken part in {L['name']} projects."
+DESC = (f"{L['name']} is an independent record label for {GENRE_TXT}, run by {RUN_BY}. "
+        f"Releases since {FIRST_YEAR}, distributed worldwide through {DISTRIBUTOR}. "
+        f"Latest single: “{R['title']}” by {R['artist']}".rstrip(".") + ".")
+ROSTER_TXT = (f"Releases since {FIRST_YEAR}, distributed worldwide through {DISTRIBUTOR}, "
+              f"with press coverage in {PRESS_TXT}. Run by {RUN_BY}, sound engineer and producer, from France.")
+SUBMIT_REASSURANCE = ("Free, and we answer every submission within two weeks - "
+                      "you keep every right on your music.")
+POOL_TXT = (f"No exclusivity: artists keep their freedom and their rights. "
+            f"These are the people who have released with {L['name']}.")
+
+
+def abs_img(u):
+    """URL absolue pour les metadonnees : og:image et JSON-LD n'acceptent pas de chemin relatif."""
+    return u if u.startswith("http") else f"{S['domain']}{u}"
 
 
 def rel_url(rel):
@@ -447,6 +526,36 @@ main,.foot{position:relative;z-index:1}
 .facts dd{margin:0}
 .legal a{text-underline-offset:.2em}
 .legal a:hover{color:var(--orange)}
+/* ---- Audit du 19/11/2026 : accessibilite, lisibilite, compactage ---- */
+/* 2.4.11 : sans ca le focus clavier passe sous la barre lecteur en bas */
+html{scroll-padding-bottom:4.75rem}
+/* 2.4.7 : .done du panneau de succes annulait le contour des pastilles de carrousel */
+.bars button:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
+/* 2.5.5 : cible au pouce */
+button[data-totop]{min-height:44px;display:inline-flex;align-items:center;gap:.5rem}
+/* 1.4.12 : sous espacement de texte force, le bandeau et les titres elargissaient la page */
+.ticker,.ticker>div{max-width:100%;overflow:hidden}
+.words{overflow-wrap:break-word}
+.words .w,.words .w>span{overflow-wrap:break-word}
+.title,.title.t8,.title.t10,.title.t12{white-space:normal}
+.artist .long{white-space:normal}
+/* l'adresse touchait le bord droit de l'ecran a 390px */
+.foot a[href^="mailto:"]{overflow-wrap:anywhere}
+/* le vinyle se gratte et fait du son : le dire aussi au toucher, ou il n'y a pas de survol */
+@media (hover:none){.hint{opacity:1}}
+/* lien Submit discret sous les deux boutons du hero */
+.cta-sub{margin:.25rem 0 0}
+.cta-sub a{display:inline-flex;align-items:center;gap:.5rem;min-height:44px;color:var(--soft);font:500 .75rem/1 Roboto,"Helvetica Neue",Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;border-bottom:1px solid var(--line);padding:0 0 .3rem}
+.cta-sub a:hover{color:var(--white);border-bottom-color:var(--orange)}
+.cta-sub .ico{width:.8rem;height:.8rem}
+/* ---- Compactage : l'accueil faisait 10,5 ecrans sur telephone ---- */
+.sec{padding-top:clamp(3rem,7vw,6rem)}
+.foot{margin-top:clamp(3.5rem,8vw,6rem)}
+.sec+.sec{border-top:1px solid var(--line)}
+@media (min-width:23rem){.roster{grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}}
+@media (min-width:60rem){.roster{grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem}}
+@media (min-width:60rem){.hero{min-height:min(calc(100svh - 3.5rem),42rem)}.hero-in{padding-top:5rem;padding-bottom:1rem}}
+@media (max-width:60rem){.hero-in{padding-top:4.75rem;padding-bottom:.5rem;gap:clamp(.9rem,2.6vh,1.6rem)}.cta-sub{margin-top:0}}
 .privacy{margin:0 0 1.5rem;color:var(--grey);font-size:.875rem;max-width:36em}
 .send{min-height:3.5rem;padding:0 2.1rem}
 .send:disabled{opacity:.6;cursor:wait}
@@ -537,7 +646,7 @@ def album_node(rel):
     return {"@type": "MusicAlbum", "@id": f"{url}#album", "name": rel["title"], "url": url,
             "albumReleaseType": f"https://schema.org/{rel['type']}Release",
             "byArtist": by[0] if len(by) == 1 else by, "creditText": rel["artist"],
-            "datePublished": rel["date"], "image": rel["image"]["jpg"]["1200"],
+            "datePublished": rel["date"], "image": abs_img(rel["image"]["jpg"]["1200"]),
             "sameAs": [l["url"] for l in rel["links"] if "watch?v=" not in l["url"]] + rel.get("sameAs", []),
             "numTracks": 1 if rel["type"] == "Single" else None, "genre": rel.get("genre"),
             "albumRelease": {"@type": "MusicRelease", "name": rel["title"], "recordLabel": {"@id": lid},
@@ -811,6 +920,7 @@ def index():
         + f'<p class="tag up rise d3">{" · ".join(e(g) for g in GENRES)} label · Created by <img class="lm" src="{e(CB["logo"])}" width="24" height="24" alt=""> {e(CB["name"])}</p>'
         + f'<p class="cta rise d4"><a class="btn up fill magnet" href="#release">Listen to {t} {icon("right")}</a>'
         + f'<a class="btn up magnet" href="/catalog/">Catalog</a></p>'
+        + '<p class="cta-sub rise d5"><a href="/submit/">Send us your music ' + icon("right") + '</a></p>'
         + '</div><canvas class="eq" aria-hidden="true"></canvas>'
         + '<div class="ticker" aria-hidden="true"><div>' + tick * 2 + '</div></div></section>'
         # latest release
@@ -895,7 +1005,7 @@ def release_page(rel):
     crumbs = [(L["name"], "/"), ("Catalog", "/catalog/"), (rel["title"], path)]
     groups = [{"@type": "MusicGroup", "@id": a["id"], "name": a["name"], "url": a["url"],
                "sameAs": list(dict.fromkeys([a["url"]] + a.get("sameAs", [])))} for a in arts]
-    graph = [page_ld(path, title, desc, about={"@id": f"{D}{path}#album"}, primaryImageOfPage=rel["image"]["jpg"]["1200"],
+    graph = [page_ld(path, title, desc, about={"@id": f"{D}{path}#album"}, primaryImageOfPage=abs_img(rel["image"]["jpg"]["1200"]),
                      breadcrumb=crumbs_ld(crumbs)), album_node(rel), LABEL_REF] + groups
     pager = ('<nav class="sec" aria-label="More releases"><div class="pager">'
              f'<a href="{rel_url(prev_r)}" rel="prev"><span class="up">{icon("left")} Previous</span><b>{e(prev_r["title"])}</b></a>'
@@ -920,7 +1030,7 @@ def release_page(rel):
            f'<ul class="grid stagger">{"".join(release_card(r) for r in others)}</ul></section>' if others else "")
     )
     return shell(title, desc, path, main, graph, cur="release" if rel is R else "catalog",
-                 image=rel["image"]["jpg"]["1200"], og_type="music.album", image_alt=rel["image"]["alt"])
+                 image=abs_img(rel["image"]["jpg"]["1200"]), og_type="music.album", image_alt=rel["image"]["alt"])
 
 
 # ---------------------------------------------------------------- artists
@@ -1041,7 +1151,8 @@ def contact_page():
 def submit_cta(kick="Demo submissions"):
     return ('<section class="sec cta-band reveal" aria-labelledby="cta-h">'
             f'<div><p class="kick up">{e(kick)}</p><h2 class="words" id="cta-h">{words("Send us your music")}</h2></div>'
-            f'<div class="cta-side"><p>Made something you think fits {e(L["name"])}? Share a link, your profiles and a few words about the track.</p>'
+            f'<div class="cta-side"><p>Made something you think fits {e(L["name"])}? Share a link, your profiles and a few words about the track. '
+            f'{e(SUBMIT_REASSURANCE)}</p>'
             f'<a class="btn up fill magnet" href="/submit/">Submit a track {icon("right")}</a></div></section>')
 
 
@@ -1127,11 +1238,14 @@ def legal_page():
     desc = (f"Legal notice for {L['name']}, how the label handles the details sent through the site, "
             "and what happens to the music you send through the submission form.")
     crumbs = [(L["name"], "/"), ("Legal", path)]
-    rows = [("Publisher", e(G.get("entity", L["name"]))),
+    rows = [("Publisher", e(G.get("publisher", G.get("entity", L["name"])))),
+            ("Director of publication", e(G.get("director", ""))),
             ("Legal form", e(G.get("form", ""))),
+            ("Registered address", e(G.get("address", ""))),
             ("SIREN", e(G.get("siren", ""))),
             ("Trade register", e(G.get("rcs", ""))),
             ("Business code", e(G.get("ape", ""))),
+            ("VAT", e(G.get("vat", ""))),
             ("Contact", f'<a href="mailto:{L["contact"]}">{L["contact"]}</a>'),
             ("Hosting", e(G.get("host", "")))]
     table = "".join(f'<div><dt class="up">{k}</dt><dd>{v}</dd></div>' for k, v in rows if v)
@@ -1167,9 +1281,11 @@ def legal_page():
         f'<li><strong>Your rights:</strong> you can ask for a copy, a correction or the deletion of your details at '
         f'<a href="mailto:{L["contact"]}">{L["contact"]}</a>. You can also complain to the CNIL (cnil.fr).</li>'
         '<li><strong>No tracking:</strong> this site has no analytics, no advertising and no tracking cookies. '
-        'Fonts and images are served from the site itself.</li>'
+        'Fonts and images are served from the site itself, so looking at a page sends nothing to a third party.</li>'
         '<li><strong>Embedded players:</strong> Spotify players only load when you click Play. From that moment Spotify '
         'receives your IP address and may set its own cookies, under its own policy.</li>'
+        '<li><strong>Portfolio page:</strong> the Lead Major portfolio page embeds players from SoundCloud and YouTube. '
+        'They receive your IP address and may set their own cookies, under their own policies.</li>'
         '<li><strong>Hidden game:</strong> if you send a score to the duck game scoreboard, the name you type and your '
         'score are shown publicly on that page. Pick a nickname if you prefer.</li>'
         '<li><strong>Server logs:</strong> the host keeps standard technical logs of page requests, as any web server does.</li>'
@@ -1237,6 +1353,10 @@ def main():
     shutil.copytree(ROOT / "js", DIST / "js")
     if (ROOT / "img").exists():
         shutil.copytree(ROOT / "img", DIST / "img")
+    (DIST / "img").mkdir(exist_ok=True)
+    for f in sorted((ROOT / ".imgcache").glob("*")):
+        if f.is_file():
+            shutil.copy2(f, DIST / "img" / f.name)
     images()
     try:
         import portfolio.portfolio as pf

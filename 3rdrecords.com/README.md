@@ -12,7 +12,7 @@ Le script `js/site.js` ajoute les interactions : menu mobile, apparitions au scr
 - `build.py` : génère `dist/`. Il faut Python 3.9+ ainsi que `pip install pillow cairosvg`.
 
 Pour une nouvelle sortie, ajoute-la en tête de `releases` dans `site.json` puis pousse sur `main` : GitHub Actions reconstruit et redéploie le site.
-Les pochettes et photos d'artistes sont servies depuis le site de l'artiste (djouher.com/img/…).
+Les pochettes et les photos d'artistes sont servies par le site, jamais par Apple, Spotify ou le site de l'artiste : afficher une page n'envoie donc l'adresse IP du visiteur a personne, et la page legal peut l'affirmer. `build.py` lit `img/src/<cle>.webp` (cle = le `slug` de la sortie, ou le `slug` / le nom de l'artiste), redimensionne en WebP et JPEG dans `.imgcache/`, puis copie le tout dans `dist/img/`. Pour remplacer une image, depose ton fichier dans `img/src/` sous la bonne cle. Si le fichier manque, l'image est telechargee une fois depuis l'URL de `site.json` : garde les sources versionnees pour que la build reste reproductible le jour ou une URL de CDN change.
 
 ## Portfolio Lead Major (3rdrecords.com/portfolio/leadmajor/)
 
