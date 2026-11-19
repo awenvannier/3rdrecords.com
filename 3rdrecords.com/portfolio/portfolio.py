@@ -98,7 +98,7 @@ CSS = r"""
 @font-face{font-family:"InterV";src:url(fonts/body.woff2) format("woff2");font-weight:100 900;font-display:swap}
 @font-face{font-family:"JBMono";src:url(fonts/mono.woff2) format("woff2");font-weight:400;font-display:swap}
 :root{
-  --bg:#07070a;--bg2:#0e0e13;--surface:#121218;--text:#eef0f5;--dim:#9aa0ad;--faint:#5f6470;
+  --bg:#07070a;--bg2:#0e0e13;--surface:#121218;--text:#eef0f5;--dim:#9aa0ad;--faint:#7d8391;
   --line:#1d1e26;--line2:#2c2e39;--blue:#5b74ff;--red:#ff4262;--green:#39e0a4;--accent:var(--blue);
   --display:"Bricolage","InterV",system-ui,sans-serif;--body:"InterV",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JBMono",ui-monospace,"SF Mono",Menlo,monospace;
@@ -129,7 +129,8 @@ img,svg,video{display:block;max-width:100%}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 20px;border-radius:999px;border:1px solid var(--line2);font-size:14px;font-weight:500;white-space:nowrap;transition:background-color .15s,color .15s,border-color .15s,transform .15s}
 .btn:hover{background:var(--text);color:var(--bg);border-color:var(--text)}
 .btn:active{transform:scale(.97)}
-.btn-p{background:var(--blue);border-color:var(--blue);color:#fff}
+/* audit 19/11/2026 : blanc sur var(--blue) donnait 3,90, sous le seuil AA de 4,5 */
+.btn-p{background:#4a5fd6;border-color:#4a5fd6;color:#fff}
 .btn-p:hover{background:var(--text);border-color:var(--text);color:var(--bg)}
 .btn-s{height:36px;padding:0 14px;font-size:13px}
 .ico{width:18px;height:18px}
@@ -281,6 +282,8 @@ img,svg,video{display:block;max-width:100%}
 .progress button:hover::before{background:var(--dim)}
 .hint-keys{display:flex;align-items:center;gap:6px;color:var(--faint);margin-top:12px}
 .hint-keys kbd{font:inherit;border:1px solid var(--line2);border-radius:5px;padding:1px 6px;color:var(--dim)}
+/* audit 19/11/2026 : 2.5.5, cibles au pouce */
+.sc-credit,.quiet{min-height:44px;display:inline-flex;align-items:center}
 @media (max-width:860px){.slide{grid-template-columns:1fr;align-items:start;align-content:start}.hint-keys{display:none}}
 @media (max-width:600px){.reel-cap{display:none}.playbtn span{width:62px;height:62px}}
 
