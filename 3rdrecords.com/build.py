@@ -549,9 +549,8 @@ button[data-totop]{min-height:44px;display:inline-flex;align-items:center;gap:.5
 .cta-sub a:hover{color:var(--white);border-bottom-color:var(--orange)}
 .cta-sub .ico{width:.8rem;height:.8rem}
 /* ---- Compactage : l'accueil faisait 10,5 ecrans sur telephone ---- */
-.sec{padding-top:clamp(2.25rem,6vw,5rem)}
-.foot{margin-top:clamp(2.5rem,6vw,5rem)}
-.sec+.sec{border-top:1px solid var(--line)}
+.sec{padding-top:clamp(3rem,7.5vw,6rem)}
+.foot{margin-top:clamp(3.25rem,8vw,6rem)}
 @media (min-width:23rem){.roster{grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}}
 @media (min-width:60rem){.roster{grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem}}
 @media (min-width:60rem){.hero{min-height:min(calc(100svh - 3.5rem),42rem)}.hero-in{padding-top:5rem;padding-bottom:1rem}}
@@ -576,6 +575,12 @@ button[data-totop]{min-height:44px;display:inline-flex;align-items:center;gap:.5
 /* le titre du hero garde sa graisse mais le sous-titre devient lisible */
 .tag{font-size:.9375rem;letter-spacing:.14em}
 .pills-note{margin:.35rem 0 1rem;color:var(--grey)}
+/* Vignette artiste en deux colonnes : le metier complet tenait sur quatre
+   lignes par-dessus la photo. Il reste sur /artists/ et sur la fiche. */
+@media (min-width:23rem) and (max-width:60rem){
+  .roster .artist .info .role{display:none}
+  .roster .artist .info p{letter-spacing:.1em}
+}
 /* La barre lecteur passait sur deux lignes une fois le texte a 15px.
    Sous 27rem on ne garde que l'essentiel : le bouton, le titre et Spotify. */
 .bar{gap:.6rem;flex-wrap:nowrap}
@@ -926,10 +931,10 @@ def artist_card(a, h="h3"):
     vid = ""  # autoplay retire le 19/11/2026 : le poster suffit, et une boucle
                # perpetuelle est du mouvement que personne n'a demande (COGA).
     n = len([r for r in RELEASES if a in rel_artists(r)])
-    extra = f' · {n} release{"s" if n != 1 else ""}' if n else ""
+    extra = f'{n} release{"s" if n != 1 else ""}' if n else ""
     return (f'<li><a class="artist" href="{artist_url(a)}"><div class="art tilt">{img}{vid}'
             f'<span class="go">{icon("right")}</span>'
-            f'<div class="info"><{h}{LONG if len(a["name"]) > 6 else ""}>{e(a["name"])}</{h}><p class="up">{e(a["role"])}{extra}</p></div></div></a></li>')
+            f'<div class="info"><{h}{LONG if len(a["name"]) > 6 else ""}>{e(a["name"])}</{h}><p class="up"><span class="role">{e(a["role"])}{" · " if extra else ""}</span>{extra}</p></div></div></a></li>')
 
 
 def news_list(items, h="h3"):
