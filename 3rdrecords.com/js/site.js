@@ -1,4 +1,4 @@
-/* 3rdrecords.com — progressive enhancement only: every page works without this file. */
+/* 3rdrecords.com - progressive enhancement only: every page works without this file. */
 (() => {
   const d = document, root = d.documentElement, body = d.body;
   root.classList.add('js');

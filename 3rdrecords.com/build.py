@@ -810,7 +810,7 @@ def bar():
     pp = (f'<button class="pp" type="button" data-dock="{e(emb)}" data-title="{t} by {e(R["artist"])} on Spotify" '
           f'aria-expanded="false" aria-controls="dock" aria-label="Play {t} by {e(R["artist"])}">{icon("play")}</button>') if emb else ""
     return (f'<aside class="bar up" aria-label="Latest release">{pp}<b>Out now</b>'
-            f'<i><a href="{rel_url(R)}">{e(R["artist"])} — {t}</a></i><span>{links}</span></aside>'
+            f'<i><a href="{rel_url(R)}">{e(R["artist"])} - {t}</a></i><span>{links}</span></aside>'
             + ('<div class="dock" id="dock" hidden><button type="button" data-undock aria-label="Close player">'
                + icon("x") + '</button><div class="dock-f"></div></div>' if emb else ""))
 
