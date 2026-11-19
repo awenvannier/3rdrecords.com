@@ -684,6 +684,7 @@ html:not(.js) .reveal,html:not(.js) .stagger>*,html:not(.js) .words:not(.load) .
 /* Fenetres courtes (iPhone SE et compagnie) : c'est la hauteur qui manque,
    pas la largeur. Le vinyle cede la place aux trois appels a l'action, qui
    doivent tous tenir au-dessus du pli, bandeau mordant juste en dessous. */
+.artist .info .n{white-space:nowrap}
 @media (max-height:46rem){
   /* le hero s'arrete un cran avant la barre : le bandeau remonte dans le champ
      et signale qu'il y a une suite, au lieu d'un plancher net */
@@ -934,7 +935,7 @@ def artist_card(a, h="h3"):
     extra = f'{n} release{"s" if n != 1 else ""}' if n else ""
     return (f'<li><a class="artist" href="{artist_url(a)}"><div class="art tilt">{img}{vid}'
             f'<span class="go">{icon("right")}</span>'
-            f'<div class="info"><{h}{LONG if len(a["name"]) > 6 else ""}>{e(a["name"])}</{h}><p class="up"><span class="role">{e(a["role"])}{" · " if extra else ""}</span>{extra}</p></div></div></a></li>')
+            f'<div class="info"><{h}{LONG if len(a["name"]) > 6 else ""}>{e(a["name"])}</{h}><p class="up"><span class="role">{e(a["role"])}{" · " if extra else ""}</span><span class="n">{extra}</span></p></div></div></a></li>')
 
 
 def news_list(items, h="h3"):
