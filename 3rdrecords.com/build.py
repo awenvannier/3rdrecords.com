@@ -700,6 +700,78 @@ html:not(.js) .reveal,html:not(.js) .stagger>*,html:not(.js) .words:not(.load) .
   .stage{width:min(26vw,8rem)}
   .hero-in{gap:.35rem;padding-top:3.25rem}
 }
+
+/* ---- nouveau design d'accueil : halos, eventail, panneaux ---- */
+html{overflow-x:clip}
+.hero-in{grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;text-align:center!important;align-items:center}
+.hero{min-height:calc(100svh - 3.5rem);align-content:center}
+.hero-in{padding-top:6.5rem;padding-bottom:1.5rem;gap:clamp(1rem,2.5vh,1.75rem)}
+.hero .fan{grid-column:1/-1;width:100%}
+.hero .tag,.hero .cta,.hero .cta-sub{grid-column:1/-1;justify-content:center}
+.halos{position:absolute;left:0;top:0;width:100%;height:230rem;overflow:clip;z-index:-2;pointer-events:none}
+.halo{position:absolute;border-radius:50%;pointer-events:none}
+.h-a{width:70rem;height:70rem;left:-20rem;top:-26rem;background:radial-gradient(closest-side,rgba(246,161,14,.30),transparent 68%)}
+.h-b{width:62rem;height:62rem;right:-20rem;top:-14rem;background:radial-gradient(closest-side,rgba(129,52,48,.80),transparent 68%)}
+.h-c{width:72rem;height:72rem;left:50%;top:14rem;margin-left:-36rem;background:radial-gradient(closest-side,rgba(246,161,14,.17),transparent 64%)}
+.h-d{width:46rem;height:46rem;left:-12rem;top:52rem;background:radial-gradient(closest-side,rgba(81,35,33,.62),transparent 70%)}
+.h-e{width:56rem;height:56rem;right:-18rem;top:122rem;background:radial-gradient(closest-side,rgba(246,161,14,.14),transparent 68%)}
+.h-f{width:50rem;height:50rem;left:-16rem;top:180rem;background:radial-gradient(closest-side,rgba(81,35,33,.55),transparent 70%)}
+.fan{position:relative;height:clamp(21rem,34vw,27rem);width:100%;margin:0 auto}
+.fan figure{position:absolute;left:50%;top:50%;width:clamp(7rem,13.2vw,11.9rem);aspect-ratio:1;margin:0;border-radius:5px;overflow:hidden;box-shadow:0 1.25rem 2.75rem rgba(0,0,0,.72);border:1px solid rgba(254,254,254,.07)}
+.fan img{width:100%;height:100%;object-fit:cover}
+.fan .mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10;width:clamp(13rem,19vw,17rem);aspect-ratio:1;display:grid;align-content:center;justify-items:center;gap:.9rem;padding:1.5rem 1.25rem;border-radius:8px;text-align:center;background:#0b0b0a;border:1px solid rgba(254,254,254,.13);box-shadow:0 2rem 4.5rem rgba(0,0,0,.7);margin:0}
+.fan .mid .lockup{width:min(11rem,80%)}
+.fan .mid figcaption{color:var(--grey);font-size:.9375rem;letter-spacing:.08em}
+.hero .tag{white-space:nowrap}
+@media (max-width:40rem){.hero .tag{white-space:normal}}
+.fan .mid a{text-decoration:none;color:var(--orange)}
+.band{max-width:84rem;margin:0 auto;padding:0 var(--pad)}
+.band ul{list-style:none;margin:0;padding:1.75rem 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.5rem;border-bottom:1px solid var(--line)}
+.band li{display:flex;align-items:baseline;gap:.75rem}
+.band b{font:400 2.5rem/.9 var(--d);color:var(--orange)}
+.band span{color:var(--soft);font-size:.9375rem;line-height:1.35}
+.give{list-style:none;margin:2.5rem 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem}
+.give li{padding:1.5rem 1.4rem;border-radius:14px;background:rgba(254,254,254,.035);border:1px solid var(--line)}
+.give b{display:block;font:500 1.0625rem/1.3 Roboto,system-ui,sans-serif;margin-bottom:.4rem}
+.give span{color:var(--grey);font-size:.9375rem;line-height:1.55}
+.money{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(2rem,5vw,4rem);align-items:start;margin-top:2.5rem}
+.calc{padding:clamp(1.75rem,3vw,2.25rem);border-radius:18px;background:rgba(254,254,254,.04);border:1px solid var(--line)}
+.calc .r{display:flex;justify-content:space-between;align-items:baseline;gap:1.5rem;padding:.85rem 0;border-bottom:1px solid var(--line)}
+.calc .r span{color:var(--soft);font-size:.9375rem}
+.calc .r b{font:400 1.25rem/1 var(--d);white-space:nowrap}
+.calc .r.sub b{color:var(--grey)}
+.calc .r.tot{border-bottom:0;padding-bottom:0}
+.calc .r.tot span{color:var(--white)}
+.calc .r.tot b{font-size:2.5rem;color:var(--orange)}
+.cmp{width:100%;border-collapse:collapse;font-size:.9375rem}
+.cmp th,.cmp td{padding:.95rem 1rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:baseline}
+.cmp th{font:500 .9375rem/1.4 Roboto,system-ui,sans-serif;color:var(--white);width:9rem;padding-left:0}
+.cmp td{color:var(--grey)}
+.cmp .us{background:rgba(246,161,14,.07);color:var(--white);text-align:right}
+.cmp td.us b{color:var(--orange);font-weight:500}
+.noai{margin:clamp(2.5rem,5vw,4rem) auto 0;max-width:84rem;border-radius:20px;background:var(--orange);color:#15110a}
+.noai-in{padding:clamp(2.5rem,5.5vw,4rem) var(--pad);max-width:52rem}
+.noai h2{font:400 clamp(2rem,4vw,3.2rem)/1.05 var(--d);color:#15110a;margin:0 0 1rem}
+.noai p{color:rgba(21,17,10,.82);margin:0;font-size:1.0625rem;line-height:1.6;max-width:54ch}
+.noai .sign{margin-top:1.1rem;font-size:.9375rem;color:rgba(21,17,10,.66)}
+@media (max-width:60rem){.band ul{grid-template-columns:1fr 1fr;gap:1.1rem}}
+@media (max-width:60rem){.give,.money{grid-template-columns:1fr}}
+@media (min-width:60rem) and (max-width:75rem){.give{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:60rem){.fan{height:26rem}}
+@media (max-width:60rem){.fan figure{width:7.5rem}}
+.fan .c1{transform:translate(calc(-50% + -402px),calc(-50% + -36px)) rotate(-15deg);z-index:1}
+.fan .c2{transform:translate(calc(-50% + -312px),calc(-50% + 74px)) rotate(-10deg);z-index:2}
+.fan .c3{transform:translate(calc(-50% + -300px),calc(-50% + -126px)) rotate(-12deg);z-index:2}
+.fan .c4{transform:translate(calc(-50% + -196px),calc(-50% + -6px)) rotate(-7deg);z-index:3}
+.fan .c5{transform:translate(calc(-50% + -184px),calc(-50% + 126px)) rotate(-5deg);z-index:4}
+.fan .c6{transform:translate(calc(-50% + -74px),calc(-50% + -142px)) rotate(-3deg);z-index:4}
+.fan .c7{transform:translate(calc(-50% + 72px),calc(-50% + -136px)) rotate(3deg);z-index:4}
+.fan .c8{transform:translate(calc(-50% + 188px),calc(-50% + -10px)) rotate(7deg);z-index:3}
+.fan .c9{transform:translate(calc(-50% + 178px),calc(-50% + 128px)) rotate(5deg);z-index:4}
+.fan .c10{transform:translate(calc(-50% + 300px),calc(-50% + -120px)) rotate(11deg);z-index:2}
+.fan .c11{transform:translate(calc(-50% + 312px),calc(-50% + 70px)) rotate(9deg);z-index:2}
+.fan .c12{transform:translate(calc(-50% + 402px),calc(-50% + -32px)) rotate(14deg);z-index:1}
+@media (max-width:60rem){.fan .c1{transform:translate(calc(-50% + -205px),calc(-50% + -28px)) rotate(-15deg)}.fan .c2{transform:translate(calc(-50% + -158px),calc(-50% + 56px)) rotate(-10deg)}.fan .c3{transform:translate(calc(-50% + -152px),calc(-50% + -92px)) rotate(-12deg)}.fan .c4{transform:translate(calc(-50% + -100px),calc(-50% + -4px)) rotate(-7deg)}.fan .c5{transform:translate(calc(-50% + -94px),calc(-50% + 74px)) rotate(-5deg)}.fan .c6{transform:translate(calc(-50% + -38px),calc(-50% + -104px)) rotate(-3deg)}.fan .c7{transform:translate(calc(-50% + 36px),calc(-50% + -100px)) rotate(3deg)}.fan .c8{transform:translate(calc(-50% + 96px),calc(-50% + -6px)) rotate(7deg)}.fan .c9{transform:translate(calc(-50% + 90px),calc(-50% + 76px)) rotate(5deg)}.fan .c10{transform:translate(calc(-50% + 152px),calc(-50% + -88px)) rotate(11deg)}.fan .c11{transform:translate(calc(-50% + 158px),calc(-50% + 52px)) rotate(9deg)}.fan .c12{transform:translate(calc(-50% + 205px),calc(-50% + -24px)) rotate(14deg)}}
 """.strip()
 CSS = "".join(line.strip() for line in CSS.splitlines())
 CSS_HASH = base64.b64encode(hashlib.sha256(CSS.encode()).digest()).decode()
@@ -983,16 +1055,19 @@ def index():
         f'<button type="button" aria-label="Show {e(rel["title"])}" aria-current="{"true" if k == 0 else "false"}"></button>'
         for k, rel in enumerate(PAST)) + '</div>'
     main = (
-        '<section class="hero" aria-labelledby="name"><div class="hero-in">'
-        + f'<div class="stage rise" aria-hidden="true"><div class="disc" data-worklet="/js/scratch.js?v={WORKLET_VER}">{circle(C["orange"], ref=True)}</div><div class="sheen"></div><div class="arm"></div>'
-        + '<span class="hint up">Drag to scratch · sound on</span></div>'
-        + f'<h1 id="name" class="rise d2">{lockup("lockup", C["orange"], C["white"], link="/duck/")}<span class="sr">{e(L["name"])}</span></h1>'
-        + f'<p class="tag up rise d3">{" · ".join(e(g) for g in GENRES)} label · Created by <img class="lm" src="{e(CB["logo"])}" width="24" height="24" alt=""> {e(CB["name"])}</p>'
-        + f'<p class="cta rise d4"><a class="btn up fill magnet" href="#release">Listen to {t} {icon("right")}</a>'
-        + f'<a class="btn up magnet" href="/catalog/">Catalog</a></p>'
-        + '<p class="cta-sub rise d5"><a href="/submit/">Send us your music ' + icon("right") + '</a></p>'
-        + '</div><canvas class="eq" aria-hidden="true"></canvas>'
+        '<div class="halos" aria-hidden="true">'
+        + '<div class="halo h-a"></div><div class="halo h-b"></div><div class="halo h-c"></div>'
+        + '<div class="halo h-d"></div><div class="halo h-e"></div><div class="halo h-f"></div>'
+        + '</div>'
+        + '<section class="hero" aria-labelledby="name"><div class="hero-in">'
+        + f'<h1 id="name" class="sr">{e(L["name"])}</h1>'
+        + fan_html()
+        + f'<p class="tag up rise d3">{" · ".join(e(g) for g in GENRES)}</p>'
+        + f'<p class="cta rise d4"><a class="btn up fill magnet" href="/submit/">Send us your music {icon("right")}</a></p>'
+        + f'<p class="cta-sub rise d5"><a href="#release">Hear what we put out {icon("right")}</a></p>'
+        + '</div>'
         + '<div class="ticker" aria-hidden="true"><div>' + tick * 2 + '</div></div></section>'
+        + band_html()
         # latest release
         + '<section class="sec release" id="release" aria-labelledby="release-title">'
         + f'<div class="sleeve reveal"><div class="rec" aria-hidden="true">{circle(C["orange"], ref=True)}</div>'
@@ -1004,26 +1079,13 @@ def index():
         + listen_list(R) + player(R)
         + f'<p class="more"><a class="btn up magnet" href="{rel_url(R)}">Release page {icon("right")}</a></p>'
         + '</div></section>'
-        # catalog slider
-        + ('<section class="sec feat" id="catalog" aria-labelledby="catalog-h">'
-           + f'<div class="backdrop" aria-hidden="true">{backdrop}</div>'
-           + section_head("Discography", "Catalog", f"Earlier releases from {e(L['name'])}." + (" Use the arrows or your keyboard to browse." if n > 1 else ""), "catalog-h", extra=ctrl if n > 1 else "")
-           + f'<div class="slider reveal"><ul class="track" aria-label="Earlier {e(L["name"])} releases">{slides}</ul></div>{bars if n > 1 else ""}'
-           + f'<p class="more"><a class="btn up magnet" href="/catalog/">Full catalog {icon("right")}</a></p></section>' if PAST else "")
         # artists
         + '<section class="sec" id="artists" aria-labelledby="artists-h">'
         + section_head("Artist pool", "Artists", e(POOL_TXT), "artists-h")
         + f'<ul class="roster stagger">{"".join(artist_card(a) for a in ARTISTS[:4])}</ul>'
         + f'<p class="more"><a class="btn up magnet" href="/artists/">All artists {icon("right")}</a></p></section>'
-        # news
-        + ('<section class="sec" id="news" aria-labelledby="news-h">'
-           + section_head("In the press", "News", "", "news-h")
-           + news_list(NEWS[:2]) + f'<p class="more"><a class="btn up magnet" href="/news/">All news {icon("right")}</a></p></section>' if NEWS else "")
-        + submit_cta()
-        # about
-        + f'<section class="sec about reveal" aria-labelledby="about-h"><div><p class="kick up">The label</p><h2 id="about-h" class="sr">About {e(L["name"])}</h2>'
-        + f'<p>{e(L["intro"])} {e(ROSTER_TXT)}</p></div>'
-        + f'<div class="seal" aria-hidden="true">{circle(C["choco"], ref=True)}</div></section>'
+        # ce que recoit l'artiste, l'argent, l'engagement sans IA, puis l'appel a envoyer
+        + give_html() + money_html() + noai_html() + submit_cta()
     )
     return shell(TITLE, DESC, "/", main, json.loads(jsonld())["@graph"])
 
@@ -1215,6 +1277,88 @@ def contact_page():
     graph = [page_ld(path, title, desc, "ContactPage", about={"@id": f"{D}/#label"}, breadcrumb=crumbs_ld(crumbs)),
              dict(LABEL_REF, email=L["contact"], contactPoint={"@type": "ContactPoint", "email": L["contact"], "contactType": "customer support"})]
     return shell(title, desc, path, main, graph, cur="contact", cta=False)
+
+
+def fan_images():
+    """12 vignettes pour l'eventail du hero : les pochettes d'abord, puis les artistes."""
+    pool = []
+    for r in RELEASES:
+        im = r["image"]
+        pool.append((im["webp"]["640"] if im.get("webp") else im["jpg"]["640"], ""))
+    for a in ARTISTS:
+        pool.append((a["image"], ""))
+    out = []
+    k = 0
+    while len(out) < 12 and pool:
+        out.append(pool[k % len(pool)])
+        k += 1
+    return out
+
+
+def fan_html():
+    figs = "".join(
+        f'<figure class="c{k}"><img src="{e(src)}" alt="" width="640" height="640" decoding="async"></figure>'
+        for k, (src, _) in enumerate(fan_images(), 1))
+    return ('<div class="fan">' + figs
+            + '<figure class="mid">'
+            + lockup("lockup", C["orange"], C["white"], link="/duck/")
+            + '</figure></div>')
+
+
+def band_html():
+    rows = [("70%", "of revenue stays yours"),
+            (str(len(RELEASES)), f"release{'s' if len(RELEASES) != 1 else ''} on the label"),
+            ("0", "exclusivity, you keep your rights"),
+            ("2", "weeks to an answer")]
+    return ('<section class="band" aria-label="The label in figures"><ul>'
+            + "".join(f'<li><b>{e(a)}</b><span>{e(b)}</span></li>' for a, b in rows)
+            + '</ul></section>')
+
+
+GIVE = [("Worldwide distribution", f"Through {DISTRIBUTOR}. We name our distributor so you can check it."),
+        ("A master, offered", "By a sound engineer, if your track needs one. Mixing stays a paid service."),
+        ("A press send", "To the media that already cover us. We promise the send, never the article."),
+        ("Credits and registries", "MusicBrainz, Discogs, Wikidata, and a release page here."),
+        ("A date and a catalogue number", "Chosen together, with a pre-save link."),
+        ("Your rights stay yours", "No exclusivity, no 360 deal, no fee.")]
+
+
+def give_html():
+    return ('<section class="sec" id="offer" aria-labelledby="offer-h">'
+            + section_head("What you get", "Six things, all ours to deliver",
+                           "Nothing here depends on an algorithm being kind to you.", "offer-h")
+            + '<ul class="give reveal">'
+            + "".join(f'<li><b>{e(t)}</b><span>{e(d)}</span></li>' for t, d in GIVE)
+            + '</ul></section>')
+
+
+def money_html():
+    rows = [("Royalties your track brings in", "100 €", ""),
+            (f"{DISTRIBUTOR}, distribution fee", "- 20 €", " sub"),
+            (f"{L['name']}, 30% of the rest", "- 24 €", " sub"),
+            ("You keep", "56 €", " tot")]
+    calc = '<div class="calc reveal">' + "".join(
+        f'<div class="r{c}"><span>{e(a)}</span><b>{e(b)}</b></div>' for a, b, c in rows) + '</div>'
+    cmp_rows = [("Your share", "30 to 50% elsewhere", "70%"),
+                ("Your rights", "often signed away", "yours"),
+                ("Exclusivity", "usually", "none"),
+                ("Visuals", "increasingly AI", "no AI, ever")]
+    table = ('<table class="cmp reveal"><tbody>' + "".join(
+        f'<tr><th scope="row">{e(a)}</th><td>{e(b)}</td><td class="us"><b>{e(c)}</b></td></tr>'
+        for a, b, c in cmp_rows) + '</tbody></table>')
+    return ('<section class="sec" id="money" aria-labelledby="money-h">'
+            + section_head("The money, in full", "What it costs",
+                           "Nothing up front. We only earn if you earn. Streaming platforms take their share before any of this, as they do for everyone.", "money-h")
+            + f'<div class="money">{calc}{table}</div></section>')
+
+
+def noai_html():
+    return ('<section class="noai reveal" aria-labelledby="noai-h"><div class="noai-in">'
+            '<h2 id="noai-h">No AI in anything we put out.</h2>'
+            '<p>Every cover and every visual was made by a person. A human listens to your track, '
+            'and a human answers you.</p>'
+            f'<p class="sign">{e(RUN_BY)}, over ten years in this industry, still releasing his own records.</p>'
+            '</div></section>')
 
 
 def submit_cta(kick="Demo submissions"):
